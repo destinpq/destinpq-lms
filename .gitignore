@@ -1,0 +1,75 @@
+# Node dependencies in all directories
+**/node_modules/
+
+# Build outputs
+**/dist/
+**/build/
+**/.next/
+**/out/
+
+# Environment files everywhere
+**/.env
+**/.env.*
+!**/.env.example
+
+# Logs
+**/*.log
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/.pnpm-debug.log*
+
+# IDE and editor files
+**/.idea/
+**/.vscode/*
+!**/.vscode/extensions.json
+!**/.vscode/settings.json
+!**/.vscode/tasks.json
+!**/.vscode/launch.json
+
+# OS specific files
+**/.DS_Store
+**/Thumbs.db
+**/*.pem
+**/desktop.ini
+
+# Cache files
+**/.cache/
+**/.turbo/
+**/.vercel/
+**/.eslintcache
+**/.stylelintcache
+**/tsconfig.tsbuildinfo
+
+# Test coverage
+**/coverage/
+**/.nyc_output/
+**/cypress/screenshots/
+**/cypress/videos/
+
+# Database files
+**/*.sqlite
+**/*.sqlite3
+**/*.db
+
+# Frontend specific
+frontend/.pnp/
+frontend/.pnp.js
+
+# Backend specific
+backend/dist/
+
+# Uploads and user content
+**/uploads/
+**/public/uploads/
+**/generated/
+
+# Misc
+**/.tmp/
+**/.temp/
+**/*.bak
+**/*.swp
+**/*~
+
+# Keep these specific files even if they match patterns above
+!**/README.md 
