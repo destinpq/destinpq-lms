@@ -41,17 +41,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const isClient = typeof window !== 'undefined';
 
   useEffect(() => {
+    // Only run Firebase auth on client side
+    if (!isClient || !auth) {
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       
-      if (user) {
+      if (user && db) {
         // Get user role from Firestore
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setUserRole(userData.role);
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setUserRole(userData.role);
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
         }
       } else {
         setUserRole(null);
@@ -61,9 +72,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [isClient]);
 
   const signUp = async (email: string, password: string, role: string, name: string) => {
+    if (!auth || !db) {
+      throw new Error('Firebase services not initialized');
+    }
+
     try {
       setLoading(true);
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
@@ -94,6 +109,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const login = async (email: string, password: string) => {
+    if (!auth) {
+      throw new Error('Firebase auth not initialized');
+    }
+
     try {
       setLoading(true);
       await signInWithEmailAndPassword(auth, email, password);
@@ -108,6 +127,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const googleLogin = async () => {
+    if (!auth || !db) {
+      throw new Error('Firebase services not initialized');
+    }
+
     try {
       setLoading(true);
       const provider = new GoogleAuthProvider();
@@ -139,6 +162,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = async () => {
+    if (!auth) {
+      throw new Error('Firebase auth not initialized');
+    }
+
     try {
       setLoading(true);
       await signOut(auth);
@@ -152,6 +179,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const resetPassword = async (email: string) => {
+    if (!auth) {
+      throw new Error('Firebase auth not initialized');
+    }
+
     try {
       setLoading(true);
       await sendPasswordResetEmail(auth, email);
@@ -164,14 +195,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    if (userRole) {
+    if (userRole && isClient) {
       if (userRole === 'instructor') {
         router.push('/instructor/dashboard');
       } else {
         router.push('/student/dashboard');
       }
     }
-  }, [userRole, router]);
+  }, [userRole, router, isClient]);
 
   const value = {
     user,

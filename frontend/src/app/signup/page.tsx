@@ -1,204 +1,239 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
-import { FirebaseError } from 'firebase/app';
+import {
+  Form, 
+  Input, 
+  Button, 
+  Checkbox, 
+  Radio, 
+  Alert, 
+  Card, 
+  Typography, 
+  Divider 
+} from 'antd';
+import {
+  UserOutlined,
+  MailOutlined,
+  LockOutlined,
+  BookOutlined
+} from '@ant-design/icons';
 
-const signupSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
-  role: z.enum(['student', 'instructor'], {
-    required_error: 'Please select a role',
-  }),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-});
+const { Title, Text } = Typography;
 
-type SignupFormData = z.infer<typeof signupSchema>;
+// Add interface for form values
+interface SignupFormValues {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  role: 'student' | 'instructor';
+  agreeToTerms: boolean;
+}
 
-export default function Signup() {
-  const { signUp, loading } = useAuth();
+export default function SignupPage() {
+  const { signUp, loading: authLoading } = useAuth();
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [success, setSuccess] = useState<boolean>(false);
+  const [form] = Form.useForm<SignupFormValues>();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<SignupFormData>({
-    resolver: zodResolver(signupSchema),
-    defaultValues: {
-      role: 'student',
-    },
-  });
-
-  const onSubmit = async (data: SignupFormData) => {
+  const onFinish = async (values: SignupFormValues) => {
+    setError(null);
+    
+    // Validate passwords match
+    if (values.password !== values.confirmPassword) {
+      form.setFields([
+        {
+          name: 'confirmPassword',
+          errors: ["Passwords don't match"]
+        }
+      ]);
+      return;
+    }
+    
     try {
-      setError(null);
-      setIsSubmitting(true);
-      await signUp(data.email, data.password, data.role, data.name);
-      // Redirect will be handled by the AuthContext
-    } catch (error: unknown) {
-      console.error('Signup error:', error);
-      if (error instanceof FirebaseError) {
-        setError(error.message || 'Failed to create account. Please try again.');
-      } else {
-        setError('An unexpected error occurred. Please try again.');
-      }
-    } finally {
-      setIsSubmitting(false);
+      await signUp(values.email, values.password, values.role, values.name);
+      setSuccess(true);
+      // Redirect logic can be added here or handled by AuthContext
+    } catch (err) { 
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred during sign up.');
     }
   };
 
+  if (success) {
+    return (
+      <div className="flex items-center justify-center" style={{ width: '100vw', height: '100vh', background: '#f0f2f5' }}>
+        <Card style={{ width: 400, textAlign: 'center' }}>
+          <Title level={3}>Account Created Successfully!</Title>
+          <Text>You can now log in.</Text>
+          <Link href="/login">
+            <Button type="primary" style={{ marginTop: '20px' }}>Go to Login</Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-              sign in to your existing account
-            </Link>
-          </p>
+    <div 
+      className="flex items-center justify-center" 
+      style={{ 
+        background: 'linear-gradient(to right, #4b6cb7, #182848)', 
+        width: '100vw', 
+        height: '100vh' 
+      }}
+    >
+      <Card style={{ 
+        width: 450, 
+        maxWidth: '95%', 
+        background: 'rgba(255, 255, 255, 0.95)', 
+        borderRadius: '12px',
+        margin: '0 auto', 
+        display: 'block',
+        position: 'relative',
+        padding: '24px'
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <BookOutlined style={{ fontSize: '32px', color: '#4b6cb7', marginBottom: '12px' }} />
+          <Title level={2} style={{ color: '#182848' }}>Create an Account</Title>
         </div>
 
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
-            <div className="flex">
-              <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            </div>
-          </div>
+          <Alert 
+            message="Signup Error" 
+            description={error} 
+            type="error" 
+            showIcon 
+            closable 
+            style={{ marginBottom: '16px' }}
+            onClose={() => setError(null)}
+          />
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div className="mb-4">
-              <label htmlFor="name" className="sr-only">
-                Full Name
-              </label>
-              <input
-                id="name"
-                type="text"
-                autoComplete="name"
-                {...register('name')}
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Full Name"
-              />
-              {errors.name && (
-                <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
-              )}
-            </div>
-            
-            <div className="mb-4">
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                {...register('email')}
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-              />
-              {errors.email && (
-                <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
-              )}
-            </div>
-            
-            <div className="mb-4">
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                {...register('password')}
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-              />
-              {errors.password && (
-                <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
-              )}
-            </div>
-            
-            <div className="mb-4">
-              <label htmlFor="confirmPassword" className="sr-only">
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                {...register('confirmPassword')}
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Confirm Password"
-              />
-              {errors.confirmPassword && (
-                <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>
-              )}
-            </div>
-            
-            <div className="mb-4">
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-                I am a:
-              </label>
-              <div className="flex gap-4">
-                <div className="flex items-center">
-                  <input
-                    id="role-student"
-                    type="radio"
-                    value="student"
-                    {...register('role')}
-                    className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
-                  />
-                  <label htmlFor="role-student" className="ml-2 block text-sm text-gray-700">
-                    Student
-                  </label>
-                </div>
-                <div className="flex items-center">
-                  <input
-                    id="role-instructor"
-                    type="radio"
-                    value="instructor"
-                    {...register('role')}
-                    className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
-                  />
-                  <label htmlFor="role-instructor" className="ml-2 block text-sm text-gray-700">
-                    Instructor
-                  </label>
-                </div>
-              </div>
-              {errors.role && (
-                <p className="text-red-500 text-xs mt-1">{errors.role.message}</p>
-              )}
-            </div>
-          </div>
+        <Form 
+          form={form}
+          layout="vertical" 
+          onFinish={onFinish}
+          autoComplete="off"
+          requiredMark
+        >
+          {/* Name */}
+          <Form.Item
+            label="Full Name"
+            name="name"
+            rules={[{ required: true, message: 'Name must be at least 2 characters', min: 2 }]}
+          >
+            <Input 
+              prefix={<UserOutlined />} 
+              placeholder="Enter your full name" 
+              size="large"
+            />
+          </Form.Item>
 
-          <div>
-            <button
-              type="submit"
-              disabled={isSubmitting || loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          {/* Email */}
+          <Form.Item
+            label="Email Address"
+            name="email"
+            rules={[
+              { required: true, message: 'Please enter your email' },
+              { type: 'email', message: 'Please enter a valid email' }
+            ]}
+          >
+            <Input 
+              prefix={<MailOutlined />} 
+              placeholder="Enter your email" 
+              size="large"
+              type="email"
+            />
+          </Form.Item>
+
+          {/* Password */}
+          <Form.Item
+            label="Password"
+            name="password"
+            rules={[
+              { required: true, message: 'Please enter your password' },
+              { min: 6, message: 'Password must be at least 6 characters' }
+            ]}
+          >
+            <Input.Password 
+              prefix={<LockOutlined />} 
+              placeholder="Enter your password (min. 6 characters)" 
+              size="large"
+            />
+          </Form.Item>
+
+          {/* Confirm Password */}
+          <Form.Item
+            label="Confirm Password"
+            name="confirmPassword"
+            dependencies={['password']}
+            rules={[
+              { required: true, message: 'Please confirm your password' }
+            ]}
+          >
+            <Input.Password 
+              prefix={<LockOutlined />} 
+              placeholder="Confirm your password" 
+              size="large"
+            />
+          </Form.Item>
+
+          {/* Role */}
+          <Form.Item
+            label="I am a:"
+            name="role"
+            rules={[{ required: true, message: 'Please select a role' }]}
+          >
+            <Radio.Group>
+              <Radio value="student">Student</Radio>
+              <Radio value="instructor">Instructor</Radio>
+            </Radio.Group>
+          </Form.Item>
+
+          {/* Agree to Terms */}
+          <Form.Item
+            name="agreeToTerms"
+            valuePropName="checked"
+            rules={[{ 
+              validator: (_, value) => 
+                value ? Promise.resolve() : Promise.reject('You must agree to the terms and conditions') 
+            }]}
+          >
+            <Checkbox>
+              I agree to the <Link href="/terms" target="_blank" style={{ color: '#4b6cb7' }}>Terms of Service</Link> and <Link href="/privacy" target="_blank" style={{ color: '#4b6cb7' }}>Privacy Policy</Link>
+            </Checkbox>
+          </Form.Item>
+
+          {/* Submit Button */}
+          <Form.Item style={{ textAlign: 'center' }}>
+            <Button 
+              type="primary" 
+              htmlType="submit" 
+              loading={authLoading}
+              size="large"
+              style={{ 
+                background: 'linear-gradient(to right, #4b6cb7, #182848)', 
+                border: 'none',
+                width: '200px',
+                height: '48px'
+              }}
             >
-              {isSubmitting || loading ? 'Creating account...' : 'Create account'}
-            </button>
-          </div>
-        </form>
-      </div>
+              {authLoading ? 'Creating Account...' : 'Create Account'}
+            </Button>
+          </Form.Item>
+        </Form>
+
+        <Divider>Already have an account?</Divider>
+
+        <Text style={{ textAlign: 'center', display: 'block' }}>
+          <Link href="/login">
+            <Button type="default" size="large" block>Sign In</Button>
+          </Link>
+        </Text>
+      </Card>
     </div>
   );
 } 
