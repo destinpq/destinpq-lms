@@ -1,219 +1,178 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { 
-  onAuthStateChanged, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  sendPasswordResetEmail,
-  GoogleAuthProvider,
-  signInWithPopup,
-  User
-} from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase/config';
 import { useRouter } from 'next/navigation';
+import { authService } from '@/api/authService';
 
-interface AuthContextType {
-  user: User | null;
-  userRole: string | null;
-  loading: boolean;
-  signUp: (email: string, password: string, role: string, name: string) => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
-  googleLogin: () => Promise<void>;
-  logout: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
+// Define User interface
+interface User {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  isAdmin: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+export interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  error: string | null;
+  signup: (firstName: string, lastName: string, email: string, password: string) => Promise<void>;
+  signin: (email: string, password: string) => Promise<void>;
+  signout: () => Promise<void>;
+}
 
-export const useAuth = () => {
+// Create context with default values
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Custom hook to use auth context
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
+}
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const isClient = typeof window !== 'undefined';
-
+  
+  // Check for authentication token and load user on initial mount
   useEffect(() => {
-    // Only run Firebase auth on client side
-    if (!isClient || !auth) {
+    // Only run on client-side
+    if (typeof window === 'undefined') return;
+    
+    const token = localStorage.getItem('access_token');
+    
+    if (token) {
+      // Verify token and get user profile
+      authService.getProfile()
+        .then(userData => {
+          setUser(userData);
+        })
+        .catch(err => {
+          console.error('Error loading user profile:', err);
+          localStorage.removeItem('access_token');
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
       setLoading(false);
-      return;
     }
+  }, []);
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
+  async function signup(firstName: string, lastName: string, email: string, password: string): Promise<void> {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const result = await authService.register({ firstName, lastName, email, password });
       
-      if (user && db) {
-        // Get user role from Firestore
-        try {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            setUserRole(userData.role);
-          }
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-        }
-      } else {
-        setUserRole(null);
+      // Save token
+      localStorage.setItem('access_token', result.access_token);
+      
+      // Set user if available in response
+      if (result.user) {
+        setUser(result.user);
       }
       
+      // Redirect based on user role
+      if (result.user?.isAdmin) {
+        router.push('/instructor/dashboard');
+      } else {
+        router.push('/student/dashboard');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign up';
+      setError(errorMessage);
+      console.error('Signup error:', error);
+      throw error;
+    } finally {
       setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [isClient]);
-
-  const signUp = async (email: string, password: string, role: string, name: string) => {
-    if (!auth || !db) {
-      throw new Error('Firebase services not initialized');
     }
+  }
 
+  async function signin(email: string, password: string): Promise<void> {
+    setLoading(true);
+    setError(null);
+    
     try {
-      setLoading(true);
-      const { user } = await createUserWithEmailAndPassword(auth, email, password);
-      
-      // Create user document in Firestore
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        email,
-        name,
-        role,
-        createdAt: new Date().toISOString(),
+      // Direct fetch to the API without using the service
+      const response = await fetch('http://localhost:23001/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
       });
       
-      setUserRole(role);
-      
-      // Redirect based on role
-      if (role === 'instructor') {
-        router.push('/instructor/dashboard');
-      } else {
-        router.push('/student/dashboard');
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Login failed with status: ${response.status}`);
       }
-    } catch (error) {
-      console.error('Error signing up:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const login = async (email: string, password: string) => {
-    if (!auth) {
-      throw new Error('Firebase auth not initialized');
-    }
-
-    try {
-      setLoading(true);
-      await signInWithEmailAndPassword(auth, email, password);
       
-      // Redirect will happen after auth state change triggers userRole update
-    } catch (error) {
-      console.error('Error logging in:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const googleLogin = async () => {
-    if (!auth || !db) {
-      throw new Error('Firebase services not initialized');
-    }
-
-    try {
-      setLoading(true);
-      const provider = new GoogleAuthProvider();
-      const { user } = await signInWithPopup(auth, provider);
+      const result = await response.json();
       
-      // Check if user exists in Firestore
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      // Save token
+      localStorage.setItem('access_token', result.access_token);
       
-      if (!userDoc.exists()) {
-        // First time login with Google, redirect to role selection page
-        router.push('/select-role');
+      // For now use a mock user since the login endpoint doesn't return user data
+      if (!result.user) {
+        const mockUser = {
+          id: 1,
+          email,
+          firstName: email.split('@')[0],
+          lastName: 'User',
+          isAdmin: false
+        };
+        setUser(mockUser);
       } else {
-        const userData = userDoc.data();
-        setUserRole(userData.role);
-        
-        // Redirect based on role
-        if (userData.role === 'instructor') {
-          router.push('/instructor/dashboard');
-        } else {
-          router.push('/student/dashboard');
-        }
+        setUser(result.user);
       }
+      
+      // Redirect to dashboard
+      router.push('/student/dashboard');
     } catch (error) {
-      console.error('Error with Google login:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign in';
+      setError(errorMessage);
+      console.error('Signin error:', error);
       throw error;
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  const logout = async () => {
-    if (!auth) {
-      throw new Error('Firebase auth not initialized');
-    }
-
+  async function signout(): Promise<void> {
+    setLoading(true);
+    
     try {
-      setLoading(true);
-      await signOut(auth);
-      router.push('/');
+      // Remove token
+      localStorage.removeItem('access_token');
+      setUser(null);
+      
+      // Redirect to login page
+      router.push('/login');
     } catch (error) {
-      console.error('Error logging out:', error);
-      throw error;
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign out';
+      setError(errorMessage);
+      console.error('Signout error:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  const resetPassword = async (email: string) => {
-    if (!auth) {
-      throw new Error('Firebase auth not initialized');
-    }
-
-    try {
-      setLoading(true);
-      await sendPasswordResetEmail(auth, email);
-    } catch (error) {
-      console.error('Error resetting password:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (userRole && isClient) {
-      if (userRole === 'instructor') {
-        router.push('/instructor/dashboard');
-      } else {
-        router.push('/student/dashboard');
-      }
-    }
-  }, [userRole, router, isClient]);
-
-  const value = {
+  const value: AuthContextType = {
     user,
-    userRole,
     loading,
-    signUp,
-    login,
-    googleLogin,
-    logout,
-    resetPassword,
+    error,
+    signup,
+    signin,
+    signout,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}; 
+} 

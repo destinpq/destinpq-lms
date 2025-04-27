@@ -3,9 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
-import { FirebaseError } from 'firebase/app';
 
 export default function SelectRole() {
   const { user, loading } = useAuth();
@@ -25,14 +22,37 @@ export default function SelectRole() {
       setError(null);
       setIsSubmitting(true);
       
-      // Create/update user document in Firestore with role
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        name: name,
-        role: selectedRole,
-        createdAt: new Date().toISOString(),
+      // Get current users from local storage
+      const usersJson = localStorage.getItem('lms_users');
+      const users = usersJson ? JSON.parse(usersJson) : [];
+      
+      // Find and update the current user
+      const updatedUsers = users.map((storedUser: {uid: string, name?: string, role?: string}) => {
+        if (storedUser.uid === user.uid) {
+          return {
+            ...storedUser,
+            name,
+            role: selectedRole,
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return storedUser;
       });
+      
+      // Save updated users back to localStorage
+      localStorage.setItem('lms_users', JSON.stringify(updatedUsers));
+      
+      // Update current user in session
+      const currentUserJson = localStorage.getItem('lms_current_user');
+      if (currentUserJson) {
+        const currentUser = JSON.parse(currentUserJson);
+        const updatedCurrentUser = {
+          ...currentUser,
+          name,
+          role: selectedRole
+        };
+        localStorage.setItem('lms_current_user', JSON.stringify(updatedCurrentUser));
+      }
       
       // Redirect based on role
       if (selectedRole === 'instructor') {
@@ -42,11 +62,7 @@ export default function SelectRole() {
       }
     } catch (error: unknown) {
       console.error('Error setting role:', error);
-      if (error instanceof FirebaseError) {
-        setError(error.message || 'Failed to set role. Please try again.');
-      } else {
-        setError('An unexpected error occurred. Please try again.');
-      }
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

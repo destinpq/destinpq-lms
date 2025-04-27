@@ -1,50 +1,65 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
-import { FirebaseError } from 'firebase/app';
-
-const forgotPasswordSchema = z.object({
-  email: z.string().email('Please enter a valid email'),
-});
-
-type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPassword() {
-  const { resetPassword, loading } = useAuth();
+  const { loading } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ForgotPasswordFormData>({
-    resolver: zodResolver(forgotPasswordSchema),
-  });
+  const validateEmail = (email: string) => {
+    if (!email) {
+      setEmailError('Email is required');
+      return false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      setEmailError('Please enter a valid email');
+      return false;
+    }
+    
+    setEmailError(null);
+    return true;
+  };
 
-  const onSubmit = async (data: ForgotPasswordFormData) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateEmail(email)) return;
+    
     try {
       setError(null);
       setSuccess(null);
       setIsSubmitting(true);
-      await resetPassword(data.email);
-      setSuccess('Password reset email sent. Please check your inbox.');
+      // Simulate password reset by checking if the user exists in localStorage
+      const usersJson = localStorage.getItem('lms_users');
+      const users = usersJson ? JSON.parse(usersJson) : [];
+      
+      // Check if user exists
+      const userExists = users.some((user: any) => user.email === email);
+      
+      // Simulate a delay for the "password reset" process
+      setTimeout(() => {
+        if (userExists) {
+          setSuccess('Password reset email sent. Please check your inbox.');
+        } else {
+          // Don't reveal if the email exists or not for security reasons
+          setSuccess('If an account with that email exists, we\'ve sent a password reset link.');
+        }
+        setIsSubmitting(false);
+      }, 1000);
     } catch (error: unknown) {
       console.error('Password reset error:', error);
-      if (error instanceof FirebaseError) {
-        setError(error.message || 'Failed to send reset email. Please try again.');
-      } else {
-        setError('An unexpected error occurred. Please try again.');
-      }
-    } finally {
+      setError('An unexpected error occurred. Please try again.');
       setIsSubmitting(false);
     }
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
   };
 
   return (
@@ -79,21 +94,23 @@ export default function ForgotPassword() {
           </div>
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Email address
             </label>
             <input
               id="email"
+              name="email"
               type="email"
               autoComplete="email"
-              {...register('email')}
+              value={email}
+              onChange={handleEmailChange}
               className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
               placeholder="Email address"
             />
-            {errors.email && (
-              <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+            {emailError && (
+              <p className="text-red-500 text-xs mt-1">{emailError}</p>
             )}
           </div>
 

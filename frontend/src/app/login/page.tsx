@@ -1,52 +1,96 @@
 'use client';
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
-import { FirebaseError } from 'firebase/app';
-import { Input, Button, Typography, Alert } from 'antd';
+import { Input, Button, Typography, Alert, Space } from 'antd';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
-const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
-
 export default function Login() {
-  const { login, loading } = useAuth();
+  const router = useRouter();
+  const { signin, loading, user } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [directApiResult, setDirectApiResult] = useState<string | null>(null);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-  });
+  // Check if user is already logged in
+  useEffect(() => {
+    if (user) {
+      router.push('/student/dashboard');
+    }
+  }, [user, router]);
 
-  const onSubmit = async (data: LoginFormData) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
     try {
       setError(null);
       setIsSubmitting(true);
-      await login(data.email, data.password);
-      // Redirect will be handled by the AuthContext
+      
+      const { email, password } = formData;
+      
+      if (!email || !password) {
+        throw new Error('Email and password are required');
+      }
+      
+      console.log('Attempting to sign in with:', { email, password });
+      
+      await signin(email, password);
+      
+      // Manual redirect as backup
+      setTimeout(() => {
+        router.push('/student/dashboard');
+      }, 500);
     } catch (error: unknown) {
-      console.error('Login error:', error);
-      if (error instanceof FirebaseError) {
+      console.error('Login error details:', error);
+      if (error instanceof Error) {
         setError(error.message || 'Failed to login. Please try again.');
       } else {
         setError('An unexpected error occurred. Please try again.');
       }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Direct API test function
+  const testDirectApi = async () => {
+    setDirectApiResult("Testing API directly...");
+    try {
+      const response = await fetch('http://localhost:23001/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: 'test@example.com',
+          password: 'password123',
+        }),
+      });
+      
+      const responseText = await response.text();
+      console.log('Direct API Response:', response.status, responseText);
+      
+      if (response.ok) {
+        setDirectApiResult(`Success! Status: ${response.status}, Response: ${responseText}`);
+      } else {
+        setDirectApiResult(`Error: ${response.status}, Response: ${responseText}`);
+      }
+    } catch (error) {
+      console.error('Direct API test error:', error);
+      setDirectApiResult(`Fetch error: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -99,10 +143,23 @@ export default function Login() {
               showIcon
               className="mb-6"
               closable
+              onClose={() => setError(null)}
             />
           )}
 
-          <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+          {directApiResult && (
+            <Alert
+              message="Direct API Test Result"
+              description={directApiResult}
+              type="info"
+              showIcon
+              className="mb-6"
+              closable
+              onClose={() => setDirectApiResult(null)}
+            />
+          )}
+
+          <form className="space-y-5" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium mb-1">
@@ -110,17 +167,15 @@ export default function Login() {
                 </label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   size="large"
                   autoComplete="email"
-                  {...register('email')}
+                  value={formData.email}
+                  onChange={handleInputChange}
                   placeholder="Your email address"
                   prefix={<MailOutlined className="text-gray-400 mr-2" />}
-                  status={errors.email ? "error" : ""}
                 />
-                {errors.email && (
-                  <Text type="danger" className="mt-1 text-sm">{errors.email.message}</Text>
-                )}
               </div>
               
               <div>
@@ -140,20 +195,18 @@ export default function Login() {
                 </div>
                 <Input.Password
                   id="password"
+                  name="password"
                   size="large"
                   autoComplete="current-password"
-                  {...register('password')}
+                  value={formData.password}
+                  onChange={handleInputChange}
                   placeholder="Your password"
                   prefix={<LockOutlined className="text-gray-400 mr-2" />}
-                  status={errors.password ? "error" : ""}
                 />
-                {errors.password && (
-                  <Text type="danger" className="mt-1 text-sm">{errors.password.message}</Text>
-                )}
               </div>
             </div>
 
-            <div>
+            <Space direction="vertical" style={{ width: '100%' }}>
               <Button
                 type="primary"
                 htmlType="submit"
@@ -170,7 +223,16 @@ export default function Login() {
               >
                 {isSubmitting || loading ? 'Signing in...' : 'Sign in'}
               </Button>
-            </div>
+
+              <Button 
+                onClick={testDirectApi} 
+                type="default" 
+                size="large" 
+                block
+              >
+                Test Direct API Connection
+              </Button>
+            </Space>
           </form>
 
           <div className="mt-8 pt-6 border-t border-gray-200 text-center">

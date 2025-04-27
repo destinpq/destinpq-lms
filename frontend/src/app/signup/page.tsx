@@ -8,11 +8,11 @@ import {
   Input, 
   Button, 
   Checkbox, 
-  Radio, 
   Alert, 
   Card, 
   Typography, 
-  Divider 
+  Divider,
+  notification
 } from 'antd';
 import {
   UserOutlined,
@@ -25,7 +25,8 @@ const { Title, Text } = Typography;
 
 // Add interface for form values
 interface SignupFormValues {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -34,7 +35,7 @@ interface SignupFormValues {
 }
 
 export default function SignupPage() {
-  const { signUp, loading: authLoading } = useAuth();
+  const { signup, loading: authLoading } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
   const [form] = Form.useForm<SignupFormValues>();
@@ -54,11 +55,26 @@ export default function SignupPage() {
     }
     
     try {
-      await signUp(values.email, values.password, values.role, values.name);
+      // Pass name and role to signup function
+      await signup(values.firstName, values.lastName, values.email, values.password);
+      
+      // Show success notification
+      notification.success({
+        message: 'Account Created',
+        description: 'Your account has been created successfully!'
+      });
+      
       setSuccess(true);
-      // Redirect logic can be added here or handled by AuthContext
+      // Redirect is handled by AuthContext
     } catch (err) { 
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred during sign up.');
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred during sign up.';
+      setError(errorMessage);
+      
+      // Show error notification
+      notification.error({
+        message: 'Signup Error',
+        description: errorMessage
+      });
     }
   };
 
@@ -119,15 +135,28 @@ export default function SignupPage() {
           autoComplete="off"
           requiredMark
         >
-          {/* Name */}
+          {/* First Name */}
           <Form.Item
-            label="Full Name"
-            name="name"
-            rules={[{ required: true, message: 'Name must be at least 2 characters', min: 2 }]}
+            label="First Name"
+            name="firstName"
+            rules={[{ required: true, message: 'First name is required', min: 2 }]}
           >
             <Input 
               prefix={<UserOutlined />} 
-              placeholder="Enter your full name" 
+              placeholder="Enter your first name" 
+              size="large"
+            />
+          </Form.Item>
+
+          {/* Last Name */}
+          <Form.Item
+            label="Last Name"
+            name="lastName"
+            rules={[{ required: true, message: 'Last name is required', min: 2 }]}
+          >
+            <Input 
+              prefix={<UserOutlined />} 
+              placeholder="Enter your last name" 
               size="large"
             />
           </Form.Item>
@@ -179,18 +208,6 @@ export default function SignupPage() {
               placeholder="Confirm your password" 
               size="large"
             />
-          </Form.Item>
-
-          {/* Role */}
-          <Form.Item
-            label="I am a:"
-            name="role"
-            rules={[{ required: true, message: 'Please select a role' }]}
-          >
-            <Radio.Group>
-              <Radio value="student">Student</Radio>
-              <Radio value="instructor">Instructor</Radio>
-            </Radio.Group>
           </Form.Item>
 
           {/* Agree to Terms */}

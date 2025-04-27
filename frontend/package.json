@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 22000",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 22000",
     "lint": "next lint"
   },
   "dependencies": {
@@ -13,7 +13,6 @@
     "@hookform/resolvers": "^5.0.1",
     "antd": "^5.24.8",
     "autoprefixer": "^10.4.21",
-    "firebase": "^11.6.1",
     "framer-motion": "^12.9.2",
     "next": "15.3.1",
     "postcss": "^8.5.3",
