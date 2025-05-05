@@ -42,8 +42,8 @@ export class AppController {
     res.send();
   }
   
-  // Specific OPTIONS handler for auth endpoints
-  @Options('auth/*')
+  // Specific OPTIONS handler for auth endpoints - using updated route syntax with named parameter
+  @Options('auth/*path')
   @HttpCode(204)
   handleAuthOptions(@Res() res: Response) {
     // Include all required domains directly for maximum compatibility
