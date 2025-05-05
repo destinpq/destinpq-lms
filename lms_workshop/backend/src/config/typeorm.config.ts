@@ -10,6 +10,10 @@ import { Achievement } from '../entities/achievement.entity';
 import { Message } from '../entities/message.entity';
 import { HomeworkQuestion } from '../entities/homework-question.entity';
 import { HomeworkResponse } from '../entities/homework-response.entity';
+import { Logger } from '@nestjs/common';
+
+// Create a logger for database connection
+const logger = new Logger('Database');
 
 export const typeOrmConfig: TypeOrmModuleOptions = {
   type: 'postgres',
@@ -31,18 +35,51 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
     HomeworkQuestion,
     HomeworkResponse
   ],
+  // Always create tables in development mode
   synchronize: true,
+  // SSL configuration
   ssl: process.env.DB_SSLMODE === 'require' ? {
     rejectUnauthorized: false
   } : false,
   extra: {
+    // Additional SSL options
     ssl: process.env.DB_SSLMODE === 'require' ? {
       rejectUnauthorized: false,
       ca: null,
       checkServerIdentity: () => undefined
-    } : undefined
+    } : undefined,
+    // Add connection timeouts
+    connectTimeout: 30000, // 30 seconds
+    idleTimeoutMillis: 30000, // 30 seconds
+    query_timeout: 30000 // 30 seconds
   },
-  retryAttempts: 5,
-  retryDelay: 3000,
-  autoLoadEntities: true
+  // Retry configuration for connection failures
+  retryAttempts: 10, // Increased from 5
+  retryDelay: 5000, // Increased from 3000
+  // Auto-load entities for easier development
+  autoLoadEntities: true,
+  // Enable logging
+  logging: true,
+  logger: {
+    log: (level, message) => {
+      logger.log(`[${level}] ${message}`);
+    },
+    logQuery: (query, parameters) => {
+      if (process.env.NODE_ENV !== 'production') {
+        logger.debug(`Query: ${query} -- Parameters: ${parameters}`);
+      }
+    },
+    logQueryError: (error, query, parameters) => {
+      logger.error(`Query error: ${error} -- Query: ${query} -- Parameters: ${parameters}`);
+    },
+    logQuerySlow: (time, query, parameters) => {
+      logger.warn(`Slow query (${time}ms): ${query} -- Parameters: ${parameters}`);
+    },
+    logSchemaBuild: (message) => {
+      logger.log(`Schema build: ${message}`);
+    },
+    logMigration: (message) => {
+      logger.log(`Migration: ${message}`);
+    },
+  }
 }; 

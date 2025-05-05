@@ -12,7 +12,16 @@ async function bootstrap() {
   logger.log('Starting application...');
   
   try {
-    const app = await NestFactory.create(AppModule);
+    // Log environment variables
+    logger.log(`Environment variables: DB_HOST=${process.env.DB_HOST}, PORT=${process.env.PORT || '8080'}`);
+    
+    // Always set port to 8080 for DigitalOcean compatibility - override any PORT env var
+    process.env.PORT = '8080';
+    
+    const app = await NestFactory.create(AppModule, {
+      cors: true,  // Enable CORS at app creation
+      logger: ['error', 'warn', 'log', 'debug', 'verbose'], // Enable all logs
+    });
     
     // Enable CORS with more permissive settings
     app.enableCors({
@@ -20,6 +29,29 @@ async function bootstrap() {
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       credentials: true,
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    });
+    
+    // Register process termination handlers
+    process.on('SIGINT', () => {
+      logger.log('SIGINT received, shutting down gracefully');
+      app.close().then(() => {
+        logger.log('Application terminated');
+        process.exit(0);
+      });
+    });
+    
+    process.on('SIGTERM', () => {
+      logger.log('SIGTERM received, shutting down gracefully');
+      app.close().then(() => {
+        logger.log('Application terminated');
+        process.exit(0);
+      });
+    });
+    
+    // Implement uncaught exception handler
+    process.on('uncaughtException', (error) => {
+      logger.error(`Uncaught exception: ${error.message}`, error.stack);
+      // Keep the application running even if there's an uncaught exception
     });
     
     // Setup global validation pipe
@@ -62,23 +94,31 @@ async function bootstrap() {
       }
     } catch (error) {
       logger.error(`Error creating default admin user: ${error.message}`, error.stack);
+      // Don't fail the app startup if admin user creation fails
+      logger.log('Continuing application startup despite admin user creation failure');
     }
     
-    // Ensure we use port 8080 for DigitalOcean compatibility
-    const port = process.env.PORT || 8080;
+    // CRITICAL: Force port 8080 for DigitalOcean health checks
+    const port = 8080;
     
-    await app.listen(port);
-    logger.log(`Application is running on: http://localhost:${port}`);
-    logger.log(`Swagger documentation available at: http://localhost:${port}/api`);
-    logger.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    logger.log(`Database host: ${process.env.DB_HOST}`);
+    // Explicitly bind to 0.0.0.0 to ensure container networking works
+    await app.listen(port, '0.0.0.0');
+    
+    logger.log(`⚡️ Application is running on: http://0.0.0.0:${port}`);
+    logger.log(`⚡️ Application is also available at: http://localhost:${port}`);
+    logger.log(`📚 Swagger documentation available at: http://localhost:${port}/api`);
+    logger.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.log(`💾 Database host: ${process.env.DB_HOST}`);
+    logger.log(`🔌 Database connected successfully`);
   } catch (error) {
-    logger.error(`Failed to start application: ${error.message}`, error.stack);
+    logger.error(`❌ Failed to start application: ${error.message}`, error.stack);
+    // Exit with error code
     process.exit(1);
   }
 }
 
+// Use a better error handler for the bootstrap process
 bootstrap().catch(err => {
-  console.error('Unhandled bootstrap error:', err);
+  console.error('💥 Unhandled bootstrap error:', err);
   process.exit(1);
 });
