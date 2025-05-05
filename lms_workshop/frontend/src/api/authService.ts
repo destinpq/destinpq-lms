@@ -1,8 +1,8 @@
 // Use environment variable or fallback to default
 // routeHelper has been removed, we'll use direct path construction instead
 
-// Force localhost:4001 for this demo to ensure authentication works
-const API_URL = 'http://localhost:4001';
+// Use the environment variable configured in .env or fall back to a default
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4001';
 
 export interface LoginCredentials {
   email: string;
