@@ -24,8 +24,14 @@ async function bootstrap() {
     });
     
     // Add global prefix to match frontend URL structure
-    app.setGlobalPrefix('lms');
-    logger.log('Global route prefix set to: /lms');
+    // BUT exclude health check endpoints for DigitalOcean compatibility
+    app.setGlobalPrefix('lms', {
+      exclude: [
+        'health',
+        'healthz',
+      ],
+    });
+    logger.log('Global route prefix set to: /lms (excluding health check endpoints)');
     
     // ===== CORS CONFIGURATION =====
     // Read CORS settings from environment variables
