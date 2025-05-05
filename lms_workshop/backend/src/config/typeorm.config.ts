@@ -34,6 +34,10 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
   synchronize: process.env.NODE_ENV !== 'production',
   ssl: process.env.DB_SSLMODE === 'require' ? { rejectUnauthorized: false } : false,
   extra: {
-    ssl: process.env.DB_SSLMODE === 'require'
+    ssl: process.env.DB_SSLMODE === 'require' ? {
+      rejectUnauthorized: false,
+      ca: null,
+      checkServerIdentity: () => undefined
+    } : undefined
   }
 }; 
