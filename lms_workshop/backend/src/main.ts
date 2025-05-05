@@ -26,7 +26,7 @@ async function bootstrap() {
     });
     
     // CORS Configuration: Explicitly allow the frontend origin
-    const allowedOrigins = [
+    const allowedOrigins: string[] = [
       'https://www.drakanksha.co', 
       // Add other origins if needed (e.g., localhost for development)
       'http://localhost:3000', 
@@ -36,14 +36,14 @@ async function bootstrap() {
     logger.log(`Configuring CORS for origins: ${allowedOrigins.join(', ')}`);
     
     app.enableCors({
-      origin: function (origin, callback) {
+      origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
         // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1) {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+          callback(null, true);
+        } else {
           const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-          return callback(new Error(msg), false);
+          callback(new Error(msg), false);
         }
-        return callback(null, true);
       },
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       credentials: true,
@@ -75,11 +75,15 @@ async function bootstrap() {
     logger.log(`📡 Listening on: http://0.0.0.0:${port}`);
     logger.log(`📚 API docs: http://0.0.0.0:${port}/api`);
     logger.log('=====================================================');
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('=====================================================');
     logger.error(`❌ FATAL ERROR: Failed to start application!`);
-    logger.error(`Error Message: ${error.message}`);
-    logger.error(`Stack Trace: ${error.stack}`);
+    if (error instanceof Error) {
+      logger.error(`Error Message: ${error.message}`);
+      logger.error(`Stack Trace: ${error.stack}`);
+    } else {
+      logger.error(`Unknown Error: ${String(error)}`);
+    }
     logger.error('=====================================================');
     
     // Exit immediately when we hit an error - fail fast for DigitalOcean
@@ -87,10 +91,10 @@ async function bootstrap() {
   }
 }
 
-bootstrap().catch(err => {
+bootstrap().catch((err: unknown) => {
   console.error('=====================================================');
   console.error('💥 UNHANDLED BOOTSTRAP ERROR');
-  console.error(err);
+  console.error(err instanceof Error ? err.stack : String(err));
   console.error('=====================================================');
   process.exit(1);
 });
