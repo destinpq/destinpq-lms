@@ -31,13 +31,18 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
     HomeworkQuestion,
     HomeworkResponse
   ],
-  synchronize: process.env.NODE_ENV !== 'production',
-  ssl: process.env.DB_SSLMODE === 'require' ? { rejectUnauthorized: false } : false,
+  synchronize: true,
+  ssl: process.env.DB_SSLMODE === 'require' ? {
+    rejectUnauthorized: false
+  } : false,
   extra: {
     ssl: process.env.DB_SSLMODE === 'require' ? {
       rejectUnauthorized: false,
       ca: null,
       checkServerIdentity: () => undefined
     } : undefined
-  }
+  },
+  retryAttempts: 5,
+  retryDelay: 3000,
+  autoLoadEntities: true
 }; 

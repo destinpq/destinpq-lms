@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as bcrypt from 'bcrypt';
@@ -8,31 +8,35 @@ import { User } from './entities/user.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
+  logger.log('Starting application...');
   
-  // Enable CORS with more permissive settings
-  app.enableCors({
-    origin: true, // Allow all origins, or you can specify: ['http://localhost:4000', 'http://localhost:3000', 'https://your-frontend-domain.com']
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  });
-  
-  // Setup global validation pipe
-  app.useGlobalPipes(new ValidationPipe({ transform: true }));
-  
-  // Setup Swagger documentation
-  const config = new DocumentBuilder()
-    .setTitle('LMS Workshop API')
-    .setDescription('API documentation for the LMS Workshop system')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
-  
-  // Create default admin user in development mode
-  if (process.env.NODE_ENV !== 'production') {
+  try {
+    const app = await NestFactory.create(AppModule);
+    
+    // Enable CORS with more permissive settings
+    app.enableCors({
+      origin: true, // Allow all origins
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      credentials: true,
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    });
+    
+    // Setup global validation pipe
+    app.useGlobalPipes(new ValidationPipe({ transform: true }));
+    
+    // Setup Swagger documentation
+    const config = new DocumentBuilder()
+      .setTitle('LMS Workshop API')
+      .setDescription('API documentation for the LMS Workshop system')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document);
+    
+    // Create default admin user in development mode
+    logger.log('Checking for default admin user...');
     try {
       const userRepository = app.get<Repository<User>>(getRepositoryToken(User));
       
@@ -40,7 +44,7 @@ async function bootstrap() {
       const admin = await userRepository.findOne({ where: { email: 'admin@local.com' } });
       
       if (!admin) {
-        console.log('Creating default admin user for development...');
+        logger.log('Creating default admin user for development...');
         const hashedPassword = await bcrypt.hash('password', 10);
         
         const newAdmin = userRepository.create({
@@ -52,20 +56,29 @@ async function bootstrap() {
         });
         
         await userRepository.save(newAdmin);
-        console.log('Default admin user created successfully. Use email: admin@local.com, password: password');
+        logger.log('Default admin user created successfully. Use email: admin@local.com, password: password');
       } else {
-        console.log('Default admin user already exists.');
+        logger.log('Default admin user already exists.');
       }
     } catch (error) {
-      console.error('Error creating default admin user:', error);
+      logger.error(`Error creating default admin user: ${error.message}`, error.stack);
     }
+    
+    // Get port from environment variable or use default 4001
+    const port = process.env.PORT || 4001;
+    
+    await app.listen(port);
+    logger.log(`Application is running on: http://localhost:${port}`);
+    logger.log(`Swagger documentation available at: http://localhost:${port}/api`);
+    logger.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.log(`Database host: ${process.env.DB_HOST}`);
+  } catch (error) {
+    logger.error(`Failed to start application: ${error.message}`, error.stack);
+    process.exit(1);
   }
-  
-  // Get port from environment variable or use default 4001
-  const port = process.env.PORT || 4001;
-  
-  await app.listen(port);
-  console.log(`Application is running on: http://localhost:${port}`);
-  console.log(`Swagger documentation available at: http://localhost:${port}/api`);
 }
-bootstrap();
+
+bootstrap().catch(err => {
+  console.error('Unhandled bootstrap error:', err);
+  process.exit(1);
+});
