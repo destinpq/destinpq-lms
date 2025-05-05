@@ -23,15 +23,9 @@ async function bootstrap() {
       bufferLogs: true,
     });
     
-    // Add global prefix to match frontend URL structure
-    // BUT exclude health check endpoints for DigitalOcean compatibility
-    app.setGlobalPrefix('lms', {
-      exclude: [
-        'health',
-        'healthz',
-      ],
-    });
-    logger.log('Global route prefix set to: /lms (excluding health check endpoints)');
+    // DO NOT set global prefix - /lms is part of frontend structure only
+    // The backend API endpoints should remain at their base paths
+    logger.log('No global route prefix set - API endpoints remain at base paths');
     
     // ===== CORS CONFIGURATION =====
     // Read CORS settings from environment variables
@@ -79,7 +73,7 @@ async function bootstrap() {
       .addBearerAuth()
       .build();
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('lms/api', app, document);
+    SwaggerModule.setup('api', app, document); // Base Swagger path, no /lms prefix
     
     // IMPORTANT: Listen on all interfaces (0.0.0.0) with port 8080
     // This is critical for DigitalOcean App Platform
@@ -91,7 +85,7 @@ async function bootstrap() {
     logger.log('=====================================================');
     logger.log(`✅ Server successfully started!`);
     logger.log(`📡 Listening on: http://0.0.0.0:${port}`);
-    logger.log(`📚 API docs: http://0.0.0.0:${port}/lms/api`);
+    logger.log(`📚 API docs: http://0.0.0.0:${port}/api`); // Base API docs path, no /lms prefix
     logger.log('=====================================================');
   } catch (error: unknown) {
     logger.error('=====================================================');

@@ -41,8 +41,7 @@ export class AppController {
     res.send();
   }
   
-  // Handle OPTIONS requests specifically for auth endpoints - using updated route syntax with named parameter
-  // This will match /lms/auth/xxx routes due to global prefix
+  // Handle OPTIONS requests specifically for auth endpoints
   @Options('auth/*path')
   @HttpCode(204)
   handleAuthOptions(@Res() res: Response) {
