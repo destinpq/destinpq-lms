@@ -1,6 +1,0 @@
-        List of relations
- Schema | Name | Type  |  Owner   
---------+------+-------+----------
- public | user | table | postgres
-(1 row)
-
