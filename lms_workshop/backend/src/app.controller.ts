@@ -27,14 +27,13 @@ export class AppController {
     return "OK";
   }
 
-  // CRITICAL: Handle OPTIONS requests for all routes with explicit CORS headers
+  // Handle OPTIONS requests for all routes with explicit CORS headers
+  // Use wildcard pattern to match any route
   @Options('*')
   @HttpCode(204)
   handleOptions(@Res() res: Response) {
     // Include all required domains directly for maximum compatibility
     const allowedOrigins = '*';
-    // Alternative approach: Comment out above and uncomment below if wildcard doesn't work
-    // const allowedOrigins = 'https://www.drakanksha.co, http://www.drakanksha.co, https://stingray-app-5y46x.ondigitalocean.app';
     
     res.header('Access-Control-Allow-Origin', allowedOrigins);
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS');
@@ -42,14 +41,13 @@ export class AppController {
     res.send();
   }
   
-  // Specific OPTIONS handler for auth endpoints - using updated route syntax with named parameter
+  // Handle OPTIONS requests specifically for auth endpoints - using updated route syntax with named parameter
+  // This will match /lms/auth/xxx routes due to global prefix
   @Options('auth/*path')
   @HttpCode(204)
   handleAuthOptions(@Res() res: Response) {
     // Include all required domains directly for maximum compatibility
     const allowedOrigins = '*';
-    // Alternative approach: Comment out above and uncomment below if wildcard doesn't work
-    // const allowedOrigins = 'https://www.drakanksha.co, http://www.drakanksha.co, https://stingray-app-5y46x.ondigitalocean.app';
     
     res.header('Access-Control-Allow-Origin', allowedOrigins);
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS');

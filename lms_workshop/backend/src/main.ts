@@ -23,6 +23,10 @@ async function bootstrap() {
       bufferLogs: true,
     });
     
+    // Add global prefix to match frontend URL structure
+    app.setGlobalPrefix('lms');
+    logger.log('Global route prefix set to: /lms');
+    
     // ===== CORS CONFIGURATION =====
     // Read CORS settings from environment variables
     const corsOrigins = process.env.APP_CORS_ALLOW_ORIGINS || '*';
@@ -69,7 +73,7 @@ async function bootstrap() {
       .addBearerAuth()
       .build();
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api', app, document);
+    SwaggerModule.setup('lms/api', app, document);
     
     // IMPORTANT: Listen on all interfaces (0.0.0.0) with port 8080
     // This is critical for DigitalOcean App Platform
@@ -81,7 +85,7 @@ async function bootstrap() {
     logger.log('=====================================================');
     logger.log(`✅ Server successfully started!`);
     logger.log(`📡 Listening on: http://0.0.0.0:${port}`);
-    logger.log(`📚 API docs: http://0.0.0.0:${port}/api`);
+    logger.log(`📚 API docs: http://0.0.0.0:${port}/lms/api`);
     logger.log('=====================================================');
   } catch (error: unknown) {
     logger.error('=====================================================');
