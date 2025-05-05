@@ -64,8 +64,8 @@ async function bootstrap() {
       logger.error(`Error creating default admin user: ${error.message}`, error.stack);
     }
     
-    // Get port from environment variable or use default 4001
-    const port = process.env.PORT || 4001;
+    // Ensure we use port 8080 for DigitalOcean compatibility
+    const port = process.env.PORT || 8080;
     
     await app.listen(port);
     logger.log(`Application is running on: http://localhost:${port}`);
