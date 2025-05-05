@@ -41,7 +41,7 @@ const client = new Client({
   ssl: {
     rejectUnauthorized: false
   },
-  connectionTimeoutMillis: 5000
+  connectionTimeoutMillis: 30000
 });
 
 client.connect()
@@ -51,11 +51,11 @@ client.connect()
   })
   .then(res => {
     console.log(`   📅 Database time: ${res.rows[0].now}`);
+    console.log('\n📢 PRE-START DIAGNOSTICS COMPLETE (SUCCESS)\n');
     return client.end();
   })
   .catch(err => {
     console.error('   ❌ Database connection failed:', err.message);
-  })
-  .finally(() => {
-    console.log('\n📢 PRE-START DIAGNOSTICS COMPLETE\n');
+    console.error('\n📢 PRE-START DIAGNOSTICS FAILED! EXITING.\n');
+    process.exit(1);
   }); 
