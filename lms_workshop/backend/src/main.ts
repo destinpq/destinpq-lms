@@ -10,11 +10,12 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
-  // Enable CORS
+  // Enable CORS with more permissive settings
   app.enableCors({
-    origin: ['http://localhost:4000', 'http://127.0.0.1:4000'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    origin: true, // Allow all origins, or you can specify: ['http://localhost:4000', 'http://localhost:3000', 'https://your-frontend-domain.com']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   });
   
   // Setup global validation pipe
