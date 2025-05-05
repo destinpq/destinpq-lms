@@ -1,0 +1,472 @@
+{
+  "exportDate": "2025-05-05T00:07:43.189Z",
+  "databaseName": "psychology_lms",
+  "tableCount": 14,
+  "tables": {
+    "achievement": {
+      "rowCount": 0
+    },
+    "course": {
+      "rowCount": 13,
+      "columns": [
+        {
+          "name": "id",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "type": "character varying",
+          "nullable": false
+        },
+        {
+          "name": "description",
+          "type": "character varying",
+          "nullable": false
+        },
+        {
+          "name": "instructor",
+          "type": "character varying",
+          "nullable": false
+        },
+        {
+          "name": "associatedWorkshop",
+          "type": "character varying",
+          "nullable": true
+        },
+        {
+          "name": "coverImage",
+          "type": "character varying",
+          "nullable": true
+        },
+        {
+          "name": "maxStudents",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "enrolledStudents",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "totalWeeks",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "totalModules",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "status",
+          "type": "USER-DEFINED",
+          "nullable": false
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp without time zone",
+          "nullable": false
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamp without time zone",
+          "nullable": false
+        }
+      ]
+    },
+    "course_students": {
+      "rowCount": 120,
+      "columns": [
+        {
+          "name": "courseId",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "userId",
+          "type": "integer",
+          "nullable": false
+        }
+      ]
+    },
+    "homework": {
+      "rowCount": 396,
+      "columns": [
+        {
+          "name": "title",
+          "type": "character varying",
+          "nullable": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "category",
+          "type": "character varying",
+          "nullable": true
+        },
+        {
+          "name": "dueDate",
+          "type": "timestamp without time zone",
+          "nullable": false
+        },
+        {
+          "name": "status",
+          "type": "USER-DEFINED",
+          "nullable": false
+        },
+        {
+          "name": "assignedToId",
+          "type": "integer",
+          "nullable": true
+        },
+        {
+          "name": "studentResponse",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "grade",
+          "type": "integer",
+          "nullable": true
+        },
+        {
+          "name": "instructorFeedback",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp without time zone",
+          "nullable": false
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamp without time zone",
+          "nullable": false
+        },
+        {
+          "name": "courseId",
+          "type": "integer",
+          "nullable": true
+        },
+        {
+          "name": "homeworkType",
+          "type": "USER-DEFINED",
+          "nullable": false
+        },
+        {
+          "name": "fileAttachment",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "submissionFileUrl",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false
+        }
+      ]
+    },
+    "homework_questions": {
+      "rowCount": 0
+    },
+    "homework_responses": {
+      "rowCount": 0
+    },
+    "lesson": {
+      "rowCount": 48,
+      "columns": [
+        {
+          "name": "id",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "type": "character varying",
+          "nullable": false
+        },
+        {
+          "name": "order",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "content",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "moduleId",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp without time zone",
+          "nullable": false
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamp without time zone",
+          "nullable": false
+        }
+      ]
+    },
+    "message": {
+      "rowCount": 0
+    },
+    "module": {
+      "rowCount": 17,
+      "columns": [
+        {
+          "name": "id",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "type": "character varying",
+          "nullable": false
+        },
+        {
+          "name": "order",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "courseId",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp without time zone",
+          "nullable": false
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamp without time zone",
+          "nullable": false
+        }
+      ]
+    },
+    "user": {
+      "rowCount": 14,
+      "columns": [
+        {
+          "name": "id",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "firstName",
+          "type": "character varying",
+          "nullable": false
+        },
+        {
+          "name": "lastName",
+          "type": "character varying",
+          "nullable": false
+        },
+        {
+          "name": "email",
+          "type": "character varying",
+          "nullable": false
+        },
+        {
+          "name": "password",
+          "type": "character varying",
+          "nullable": false
+        },
+        {
+          "name": "isAdmin",
+          "type": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp without time zone",
+          "nullable": false
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamp without time zone",
+          "nullable": false
+        }
+      ]
+    },
+    "user_achievements": {
+      "rowCount": 0
+    },
+    "workshop": {
+      "rowCount": 1,
+      "columns": [
+        {
+          "name": "id",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "type": "character varying",
+          "nullable": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "instructor",
+          "type": "character varying",
+          "nullable": false
+        },
+        {
+          "name": "scheduledAt",
+          "type": "timestamp without time zone",
+          "nullable": false
+        },
+        {
+          "name": "preparatoryMaterials",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "category",
+          "type": "character varying",
+          "nullable": true
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp without time zone",
+          "nullable": false
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamp without time zone",
+          "nullable": false
+        },
+        {
+          "name": "maxParticipants",
+          "type": "integer",
+          "nullable": true
+        },
+        {
+          "name": "startDate",
+          "type": "timestamp without time zone",
+          "nullable": false
+        },
+        {
+          "name": "endDate",
+          "type": "timestamp without time zone",
+          "nullable": true
+        },
+        {
+          "name": "durationWeeks",
+          "type": "integer",
+          "nullable": false
+        }
+      ]
+    },
+    "workshop_attendees": {
+      "rowCount": 10,
+      "columns": [
+        {
+          "name": "workshopId",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "userId",
+          "type": "integer",
+          "nullable": false
+        }
+      ]
+    },
+    "workshop_session": {
+      "rowCount": 12,
+      "columns": [
+        {
+          "name": "id",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "type": "character varying",
+          "nullable": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "scheduledAt",
+          "type": "timestamp without time zone",
+          "nullable": false
+        },
+        {
+          "name": "durationMinutes",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "meetingUrl",
+          "type": "character varying",
+          "nullable": true
+        },
+        {
+          "name": "sessionMaterials",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "isRecorded",
+          "type": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "recordingUrl",
+          "type": "character varying",
+          "nullable": true
+        },
+        {
+          "name": "workshopId",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp without time zone",
+          "nullable": false
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamp without time zone",
+          "nullable": false
+        }
+      ]
+    }
+  }
+}

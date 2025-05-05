@@ -1,0 +1,482 @@
+[
+  {
+    "courseId": 1,
+    "userId": 1
+  },
+  {
+    "courseId": 1,
+    "userId": 5
+  },
+  {
+    "courseId": 1,
+    "userId": 6
+  },
+  {
+    "courseId": 1,
+    "userId": 7
+  },
+  {
+    "courseId": 1,
+    "userId": 8
+  },
+  {
+    "courseId": 1,
+    "userId": 9
+  },
+  {
+    "courseId": 1,
+    "userId": 10
+  },
+  {
+    "courseId": 1,
+    "userId": 11
+  },
+  {
+    "courseId": 1,
+    "userId": 12
+  },
+  {
+    "courseId": 1,
+    "userId": 14
+  },
+  {
+    "courseId": 2,
+    "userId": 1
+  },
+  {
+    "courseId": 2,
+    "userId": 5
+  },
+  {
+    "courseId": 2,
+    "userId": 6
+  },
+  {
+    "courseId": 2,
+    "userId": 7
+  },
+  {
+    "courseId": 2,
+    "userId": 8
+  },
+  {
+    "courseId": 2,
+    "userId": 9
+  },
+  {
+    "courseId": 2,
+    "userId": 10
+  },
+  {
+    "courseId": 2,
+    "userId": 11
+  },
+  {
+    "courseId": 2,
+    "userId": 12
+  },
+  {
+    "courseId": 2,
+    "userId": 14
+  },
+  {
+    "courseId": 3,
+    "userId": 1
+  },
+  {
+    "courseId": 3,
+    "userId": 5
+  },
+  {
+    "courseId": 3,
+    "userId": 6
+  },
+  {
+    "courseId": 3,
+    "userId": 7
+  },
+  {
+    "courseId": 3,
+    "userId": 8
+  },
+  {
+    "courseId": 3,
+    "userId": 9
+  },
+  {
+    "courseId": 3,
+    "userId": 10
+  },
+  {
+    "courseId": 3,
+    "userId": 11
+  },
+  {
+    "courseId": 3,
+    "userId": 12
+  },
+  {
+    "courseId": 3,
+    "userId": 14
+  },
+  {
+    "courseId": 4,
+    "userId": 1
+  },
+  {
+    "courseId": 4,
+    "userId": 5
+  },
+  {
+    "courseId": 4,
+    "userId": 6
+  },
+  {
+    "courseId": 4,
+    "userId": 7
+  },
+  {
+    "courseId": 4,
+    "userId": 8
+  },
+  {
+    "courseId": 4,
+    "userId": 9
+  },
+  {
+    "courseId": 4,
+    "userId": 10
+  },
+  {
+    "courseId": 4,
+    "userId": 11
+  },
+  {
+    "courseId": 4,
+    "userId": 12
+  },
+  {
+    "courseId": 4,
+    "userId": 14
+  },
+  {
+    "courseId": 5,
+    "userId": 1
+  },
+  {
+    "courseId": 5,
+    "userId": 5
+  },
+  {
+    "courseId": 5,
+    "userId": 6
+  },
+  {
+    "courseId": 5,
+    "userId": 7
+  },
+  {
+    "courseId": 5,
+    "userId": 8
+  },
+  {
+    "courseId": 5,
+    "userId": 9
+  },
+  {
+    "courseId": 5,
+    "userId": 10
+  },
+  {
+    "courseId": 5,
+    "userId": 11
+  },
+  {
+    "courseId": 5,
+    "userId": 12
+  },
+  {
+    "courseId": 5,
+    "userId": 14
+  },
+  {
+    "courseId": 6,
+    "userId": 1
+  },
+  {
+    "courseId": 6,
+    "userId": 5
+  },
+  {
+    "courseId": 6,
+    "userId": 6
+  },
+  {
+    "courseId": 6,
+    "userId": 7
+  },
+  {
+    "courseId": 6,
+    "userId": 8
+  },
+  {
+    "courseId": 6,
+    "userId": 9
+  },
+  {
+    "courseId": 6,
+    "userId": 10
+  },
+  {
+    "courseId": 6,
+    "userId": 11
+  },
+  {
+    "courseId": 6,
+    "userId": 12
+  },
+  {
+    "courseId": 6,
+    "userId": 14
+  },
+  {
+    "courseId": 7,
+    "userId": 1
+  },
+  {
+    "courseId": 7,
+    "userId": 5
+  },
+  {
+    "courseId": 7,
+    "userId": 6
+  },
+  {
+    "courseId": 7,
+    "userId": 7
+  },
+  {
+    "courseId": 7,
+    "userId": 8
+  },
+  {
+    "courseId": 7,
+    "userId": 9
+  },
+  {
+    "courseId": 7,
+    "userId": 10
+  },
+  {
+    "courseId": 7,
+    "userId": 11
+  },
+  {
+    "courseId": 7,
+    "userId": 12
+  },
+  {
+    "courseId": 7,
+    "userId": 14
+  },
+  {
+    "courseId": 8,
+    "userId": 1
+  },
+  {
+    "courseId": 8,
+    "userId": 5
+  },
+  {
+    "courseId": 8,
+    "userId": 6
+  },
+  {
+    "courseId": 8,
+    "userId": 7
+  },
+  {
+    "courseId": 8,
+    "userId": 8
+  },
+  {
+    "courseId": 8,
+    "userId": 9
+  },
+  {
+    "courseId": 8,
+    "userId": 10
+  },
+  {
+    "courseId": 8,
+    "userId": 11
+  },
+  {
+    "courseId": 8,
+    "userId": 12
+  },
+  {
+    "courseId": 8,
+    "userId": 14
+  },
+  {
+    "courseId": 9,
+    "userId": 1
+  },
+  {
+    "courseId": 9,
+    "userId": 5
+  },
+  {
+    "courseId": 9,
+    "userId": 6
+  },
+  {
+    "courseId": 9,
+    "userId": 7
+  },
+  {
+    "courseId": 9,
+    "userId": 8
+  },
+  {
+    "courseId": 9,
+    "userId": 9
+  },
+  {
+    "courseId": 9,
+    "userId": 10
+  },
+  {
+    "courseId": 9,
+    "userId": 11
+  },
+  {
+    "courseId": 9,
+    "userId": 12
+  },
+  {
+    "courseId": 9,
+    "userId": 14
+  },
+  {
+    "courseId": 10,
+    "userId": 1
+  },
+  {
+    "courseId": 10,
+    "userId": 5
+  },
+  {
+    "courseId": 10,
+    "userId": 6
+  },
+  {
+    "courseId": 10,
+    "userId": 7
+  },
+  {
+    "courseId": 10,
+    "userId": 8
+  },
+  {
+    "courseId": 10,
+    "userId": 9
+  },
+  {
+    "courseId": 10,
+    "userId": 10
+  },
+  {
+    "courseId": 10,
+    "userId": 11
+  },
+  {
+    "courseId": 10,
+    "userId": 12
+  },
+  {
+    "courseId": 10,
+    "userId": 14
+  },
+  {
+    "courseId": 11,
+    "userId": 1
+  },
+  {
+    "courseId": 11,
+    "userId": 5
+  },
+  {
+    "courseId": 11,
+    "userId": 6
+  },
+  {
+    "courseId": 11,
+    "userId": 7
+  },
+  {
+    "courseId": 11,
+    "userId": 8
+  },
+  {
+    "courseId": 11,
+    "userId": 9
+  },
+  {
+    "courseId": 11,
+    "userId": 10
+  },
+  {
+    "courseId": 11,
+    "userId": 11
+  },
+  {
+    "courseId": 11,
+    "userId": 12
+  },
+  {
+    "courseId": 11,
+    "userId": 14
+  },
+  {
+    "courseId": 12,
+    "userId": 1
+  },
+  {
+    "courseId": 12,
+    "userId": 5
+  },
+  {
+    "courseId": 12,
+    "userId": 6
+  },
+  {
+    "courseId": 12,
+    "userId": 7
+  },
+  {
+    "courseId": 12,
+    "userId": 8
+  },
+  {
+    "courseId": 12,
+    "userId": 9
+  },
+  {
+    "courseId": 12,
+    "userId": 10
+  },
+  {
+    "courseId": 12,
+    "userId": 11
+  },
+  {
+    "courseId": 12,
+    "userId": 12
+  },
+  {
+    "courseId": 12,
+    "userId": 14
+  }
+]
