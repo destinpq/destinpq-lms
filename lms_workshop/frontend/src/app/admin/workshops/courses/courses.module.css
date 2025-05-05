@@ -1,0 +1,313 @@
+/* Course Page Styles */
+
+/* Header styles */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--grey-900);
+  margin: 0;
+}
+
+.headerControls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.searchField {
+  min-width: 250px;
+  border-radius: var(--border-radius);
+}
+
+.searchField input {
+  border-radius: var(--border-radius);
+  border-color: var(--grey-200);
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.searchField span {
+  color: var(--grey-400);
+}
+
+.addButton {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 0 16px;
+  height: 36px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.addButton:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Table */
+.tableContainer {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  padding: 14px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--grey-600);
+  background-color: var(--grey-50);
+  border-bottom: 1px solid var(--grey-200);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table td {
+  padding: 16px;
+  border-bottom: 1px solid var(--grey-200);
+  color: var(--grey-800);
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.table tr:hover td {
+  background-color: var(--grey-50);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 48px 0;
+  color: var(--grey-500);
+  font-size: 15px;
+}
+
+/* Status Tags */
+.status {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.active {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+
+.draft {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+}
+
+.completed {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--info);
+}
+
+/* Action Buttons */
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Video Button */
+.videoButton {
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.videoButton:hover {
+  background-color: #096dd9;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.editButton {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.editButton:hover {
+  background-color: var(--primary-hover);
+}
+
+.deleteButton {
+  background-color: white;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: var(--border-radius);
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deleteButton:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* Modal Styles */
+.courseModal :global(.ant-modal-content) {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.courseModal :global(.ant-modal-header) {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--grey-200);
+  background-color: white;
+}
+
+.courseModal :global(.ant-modal-title) {
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--grey-900);
+}
+
+.courseModal :global(.ant-modal-body) {
+  padding: 24px;
+}
+
+.courseModal :global(.ant-form-item-label > label) {
+  font-weight: 500;
+  color: var(--grey-800);
+  font-size: 14px;
+}
+
+.courseModal :global(.ant-form-item) {
+  margin-bottom: 20px;
+}
+
+.formTextarea {
+  border-radius: var(--border-radius);
+  min-height: 100px;
+  resize: none;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--grey-200);
+}
+
+.cancelButton {
+  background-color: white;
+  color: var(--grey-700);
+  border: 1px solid var(--grey-300);
+  border-radius: var(--border-radius);
+  padding: 0 16px;
+  height: 36px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelButton:hover {
+  background-color: var(--grey-100);
+  border-color: var(--grey-400);
+}
+
+.submitButton {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 0 16px;
+  height: 36px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.submitButton:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.submitButton:disabled {
+  background-color: var(--grey-400);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Loading State */
+.loadingState {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+}
+
+/* Logout Button */
+.spacer {
+  flex-grow: 1;
+  min-height: 20px;
+}
+
+.logoutButton {
+  margin-top: 20px;
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: var(--border-radius);
+  padding: 10px 16px;
+  display: flex;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.logoutButton:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+} 

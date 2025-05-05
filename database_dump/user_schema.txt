@@ -1,0 +1,15 @@
+                                        Table "public.user"
+  Column   |            Type             | Collation | Nullable |             Default              
+-----------+-----------------------------+-----------+----------+----------------------------------
+ id        | integer                     |           | not null | nextval('user_id_seq'::regclass)
+ firstName | character varying           |           | not null | 
+ lastName  | character varying           |           | not null | 
+ email     | character varying           |           | not null | 
+ password  | character varying           |           | not null | 
+ isAdmin   | boolean                     |           | not null | false
+ createdAt | timestamp without time zone |           | not null | now()
+ updatedAt | timestamp without time zone |           | not null | now()
+Indexes:
+    "PK_cace4a159ff9f2512dd42373760" PRIMARY KEY, btree (id)
+    "UQ_e12875dfb3b1d92d7d7c5377e22" UNIQUE CONSTRAINT, btree (email)
+

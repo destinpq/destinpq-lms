@@ -1,0 +1,86 @@
+/* Custom CSS to override Jitsi styles */
+
+/* Jitsi navbar and toolbar */
+#new-toolbox, 
+div[class*="new-toolbox"],
+div[class*="toolbox-content"],
+div[class*="toolbox-button"],
+div[class*="subject"],
+div[class*="subject-info"],
+div[class*="filmstrip"],
+div[class*="vertical-filmstrip"],
+div[class*="horizontal-filmstrip"],
+div[class*="filmstrip__toolbar"],
+div[class*="chat-container"],
+div[class*="invite-more"],
+div[class*="participant-avatar"],
+div[class*="filmstrip__remote-videos"],
+div[class*="local-video"],
+div[class*="video-preview"],
+div[class*="watermark"],
+div[class*="deep-linking"],
+button[class*="prejoin-preview-dropdown"],
+div[class*="info-dialog"],
+div[id*="feedback"],
+div[id*="settings"],
+div[id*="new-toolbox"],
+div[class*="large-video-labels"],
+div[class*="video-quality-label"],
+div[class*="localRecordingLabel"],
+div[class*="videocontainer__hoverOverlay"],
+div[class*="indicator-container"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  pointer-events: none !important;
+}
+
+/* Hide the filmstrip */
+.filmstrip,
+.vertical-filmstrip,
+.horizontal-filmstrip {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Hide the top bar text */
+.subject-info {
+  display: none !important;
+}
+
+/* Full overlay to block any Jitsi header elements */
+#jitsi-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background-color: black;
+  opacity: 0.7;
+  z-index: 999;
+  pointer-events: none;
+}
+
+/* Make sure the video container takes full space */
+#largeVideoContainer,
+.videocontainer,
+#largeVideoWrapper {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Fix Jitsi iframe to fill container */
+#jitsiConferenceFrame0 {
+  position: relative !important;
+  height: 100% !important;
+  width: 100% !important;
+  border: none !important;
+  background: black !important;
+} 

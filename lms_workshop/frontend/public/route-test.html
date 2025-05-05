@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Route Tester</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.5;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #2d3f7c;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #f5f5f5;
+      font-weight: 600;
+    }
+    .result {
+      font-weight: bold;
+    }
+    .success {
+      color: #10B981;
+    }
+    .error {
+      color: #EF4444;
+    }
+    .loading {
+      color: #3B82F6;
+    }
+    .button {
+      background-color: #2d3f7c;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .button:hover {
+      background-color: #3a54d6;
+    }
+  </style>
+</head>
+<body>
+  <h1>LMS Route Accessibility Tester</h1>
+  <p>This page checks if all key routes in the LMS application are accessible.</p>
+  
+  <button id="testBtn" class="button">Test All Routes</button>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Route</th>
+        <th>Status</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+    <tbody id="results">
+      <!-- Results will be inserted here -->
+    </tbody>
+  </table>
+  
+  <div id="summary" style="margin-top: 20px; display: none;">
+    <h2>Summary</h2>
+    <p>Total routes: <span id="totalRoutes">0</span></p>
+    <p>Accessible routes: <span id="accessibleRoutes">0</span></p>
+    <p>Inaccessible routes: <span id="inaccessibleRoutes">0</span></p>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const routes = [
+        '/lms',
+        '/lms/login',
+        '/lms/signup',
+        '/lms/student/dashboard',
+        '/lms/admin/dashboard',
+        '/lms/workshop/adv-cognitive-techniques',
+        '/lms/workshop/adv-cognitive-techniques?tab=materials',
+        '/lms/workshop/session/123'
+      ];
+      
+      const testBtn = document.getElementById('testBtn');
+      const resultsTable = document.getElementById('results');
+      const summary = document.getElementById('summary');
+      const totalRoutesEl = document.getElementById('totalRoutes');
+      const accessibleRoutesEl = document.getElementById('accessibleRoutes');
+      const inaccessibleRoutesEl = document.getElementById('inaccessibleRoutes');
+      
+      testBtn.addEventListener('click', function() {
+        // Clear previous results
+        resultsTable.innerHTML = '';
+        summary.style.display = 'none';
+        
+        // Create rows for each route with "Loading..." status
+        routes.forEach(route => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td><a href="${route}" target="_blank">${route}</a></td>
+            <td>-</td>
+            <td class="result loading">Testing...</td>
+          `;
+          row.id = `route-${routes.indexOf(route)}`;
+          resultsTable.appendChild(row);
+        });
+        
+        // Test each route
+        let accessibleCount = 0;
+        let inaccessibleCount = 0;
+        
+        const testRoute = async (route, index) => {
+          try {
+            const row = document.getElementById(`route-${index}`);
+            const cells = row.getElementsByTagName('td');
+            
+            const baseUrl = window.location.origin;
+            const response = await fetch(`${baseUrl}${route}`, { method: 'HEAD' });
+            
+            cells[1].textContent = response.status;
+            
+            if (response.ok) {
+              cells[2].textContent = 'Accessible';
+              cells[2].className = 'result success';
+              accessibleCount++;
+            } else {
+              cells[2].textContent = 'Not Accessible';
+              cells[2].className = 'result error';
+              inaccessibleCount++;
+            }
+          } catch (error) {
+            const row = document.getElementById(`route-${index}`);
+            const cells = row.getElementsByTagName('td');
+            
+            cells[1].textContent = 'Error';
+            cells[2].textContent = error.message || 'Network error';
+            cells[2].className = 'result error';
+            inaccessibleCount++;
+          }
+          
+          // Update summary when all routes have been tested
+          if (accessibleCount + inaccessibleCount === routes.length) {
+            totalRoutesEl.textContent = routes.length;
+            accessibleRoutesEl.textContent = accessibleCount;
+            inaccessibleRoutesEl.textContent = inaccessibleCount;
+            summary.style.display = 'block';
+          }
+        };
+        
+        // Test all routes in parallel
+        routes.forEach((route, index) => {
+          setTimeout(() => {
+            testRoute(route, index);
+          }, index * 200); // Stagger requests slightly
+        });
+      });
+    });
+  </script>
+</body>
+</html> 

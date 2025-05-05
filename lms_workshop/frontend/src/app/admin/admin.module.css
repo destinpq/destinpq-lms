@@ -1,0 +1,223 @@
+.adminContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.adminHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.adminHeader h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  color: var(--text-dark);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  color: var(--primary);
+  font-weight: 500;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.formContainer {
+  background-color: white;
+  border-radius: var(--radius-md);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.errorMessage {
+  background-color: var(--error-light);
+  color: var(--error);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formGroup label {
+  font-weight: 500;
+  color: var(--text-dark);
+  font-size: 0.95rem;
+}
+
+.textInput, .textArea, .selectInput {
+  padding: 0.75rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  width: 100%;
+  background-color: white;
+}
+
+.selectInput {
+  height: 45px;
+  appearance: auto; /* Ensure native dropdown arrow appears */
+  cursor: pointer;
+  color: var(--text-dark);
+  background-color: white;
+}
+
+.textInput:focus, .textArea:focus, .selectInput:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.1);
+}
+
+.radioGroup {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.25rem;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.radioLabel input {
+  margin: 0;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.cancelButton, .submitButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancelButton {
+  background-color: var(--background-light);
+  color: var(--text-medium);
+}
+
+.cancelButton:hover {
+  background-color: var(--border-light);
+}
+
+.submitButton {
+  background-color: var(--primary);
+  color: white;
+}
+
+.submitButton:hover {
+  background-color: var(--primary-dark);
+}
+
+.submitButton:disabled, .cancelButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loadingContainer {
+  min-height: 70vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 3px solid rgba(74, 108, 247, 0.2);
+  border-top-color: var(--primary);
+  animation: spin 1s linear infinite;
+}
+
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dataTable th, .dataTable td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.dataTable th {
+  background-color: var(--background-light);
+  font-weight: 500;
+  color: var(--text-medium);
+}
+
+.dataTable tr:hover {
+  background-color: var(--secondary-lightest);
+}
+
+.actionButton {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0.25rem 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.actionButton:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+.deleteButton {
+  color: var(--error);
+}
+
+.deleteButton:hover {
+  color: var(--error-dark);
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem 0;
+  color: var(--text-medium);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+} 

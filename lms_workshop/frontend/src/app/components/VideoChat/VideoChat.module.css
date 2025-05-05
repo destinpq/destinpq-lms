@@ -1,0 +1,211 @@
+.container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.roomInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.roomName {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.time {
+  color: #666;
+  font-size: 14px;
+}
+
+.videoContainer {
+  background-color: #1a2639;
+  min-height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.mainVideo {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.participantVideos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+}
+
+.videoTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #253b56;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.videoPlaceholder {
+  width: 100%;
+  height: 240px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #3a5e79;
+}
+
+.fakeVideo {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.fakeVideoContent {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.participantInfo {
+  width: 100%;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.participantName {
+  color: white;
+  font-weight: 500;
+}
+
+.audioIndicator {
+  color: #52c41a;
+}
+
+.audioIndicatorMuted {
+  color: #ff4d4f;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background-color: #f5f5f5;
+}
+
+.controlButton {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.leaveButton {
+  margin-left: 16px;
+}
+
+.chatPanel {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.chatCard {
+  width: 100%;
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chatMessages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 200px;
+}
+
+.messageAdmin, .messageUser {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.messageUser {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.messageSender {
+  font-weight: 500;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.messageContent {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background-color: #f0f2f5;
+  max-width: 80%;
+}
+
+.messageAdmin .messageContent {
+  background-color: #e6f7ff;
+}
+
+.messageUser .messageContent {
+  background-color: #f6ffed;
+}
+
+.chatInput {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.chatInputField {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  outline: none;
+}
+
+.chatInputField:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+} 

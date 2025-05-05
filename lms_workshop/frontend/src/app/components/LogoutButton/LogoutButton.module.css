@@ -1,0 +1,63 @@
+/* LogoutButton styles for different contexts */
+
+/* Sidebar variant - red button with border */
+.sidebarLogoutButton {
+  margin-top: 20px;
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
+  border: 1px solid #EF4444;
+  border-radius: 6px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.sidebarLogoutButton:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+}
+
+.sidebarLogoutButton .icon {
+  margin-right: 10px;
+}
+
+/* Header variant - light button */
+.headerLogoutButton {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerLogoutButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Menu variant - for dropdown menus */
+.menuLogoutButton {
+  color: #ff4d4f;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.menuLogoutButton:hover {
+  background-color: rgba(255, 77, 79, 0.1);
+}
+
+.menuLogoutButton .icon {
+  margin-right: 10px;
+} 

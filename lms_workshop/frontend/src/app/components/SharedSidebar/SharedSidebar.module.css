@@ -1,0 +1,157 @@
+/* Shared Sidebar Styles */
+/* Variables */
+.sidebar {
+  --dark-blue: #0F172A;
+  --border-radius: 6px;
+
+  width: 220px;
+  background-color: var(--dark-blue);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  padding-top: 16px;
+}
+
+.headerArea {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.logo {
+  height: 40px;
+  margin: 0 auto 16px;
+  background-color: rgba(255, 255, 255, 0.1);
+  width: 80%;
+  border-radius: var(--border-radius);
+}
+
+.notificationArea {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 8px 8px;
+}
+
+/* Override notification bell styles for the sidebar */
+.notificationArea :global(.bellIcon) {
+  color: white;
+  font-size: 18px;
+}
+
+.notificationArea :global(.bellContainer:hover .bellIcon) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.navGroup {
+  margin-bottom: 12px;
+}
+
+.navGroupTitle {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  border-radius: var(--border-radius);
+  transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.navItem:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.navItem.active {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-weight: 600;
+}
+
+.icon {
+  margin-right: 10px;
+}
+
+/* Logout Button */
+.spacer {
+  flex-grow: 1;
+  min-height: 20px;
+}
+
+.logoutButton {
+  margin-top: 20px;
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
+  border: 1px solid #EF4444;
+  border-radius: 6px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.logoutButton:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+}
+
+.logoutButton .icon {
+  margin-right: 10px;
+} 
+
+/* Big, very visible logout button */
+.bigLogoutButton {
+  margin-top: 20px;
+  background-color: #f5222d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 16px;
+  transition: all 0.2s;
+  width: 100%;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 8px rgba(245, 34, 45, 0.5);
+}
+
+.bigLogoutButton:hover {
+  background-color: #ff4d4f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 34, 45, 0.6);
+}
+
+.bigLogoutButton .icon {
+  margin-right: 10px;
+  font-size: 18px;
+} 

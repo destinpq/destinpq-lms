@@ -1,0 +1,80 @@
+/* Global Admin Styles */
+
+/* Global admin controls - fixed position at top right */
+.global-admin-controls {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 1000; /* Ensure it appears above other elements */
+  display: flex;
+  gap: 8px;
+}
+
+/* Global logout button - always visible */
+.global-logout-button {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(245, 34, 45, 0.5);
+  transition: background-color 0.2s;
+  text-transform: uppercase;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.global-logout-button:hover {
+  background-color: #ff7875;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 34, 45, 0.6);
+}
+
+/* Floating logout button in the bottom right corner */
+.floating-logout-button {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 50px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  z-index: 1001;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.floating-logout-button:hover {
+  background-color: #ff7875;
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Force logout button to be visible in all sidebars - keeping only one style */
+.ant-layout-sider .ant-menu-item:last-child {
+  margin-top: auto;
+  background-color: #ff4d4f !important;
+  color: white !important;
+  font-weight: bold !important;
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+
+/* Ensure our logout button is always visible on dark backgrounds */
+.ant-layout-sider .ant-menu-item:last-child a,
+.ant-layout-sider .ant-menu-item:last-child span {
+  color: white !important;
+} 

@@ -1,0 +1,263 @@
+.newCourseContainer {
+  min-height: 100vh;
+  background-color: var(--background-light);
+}
+
+.header {
+  background-color: var(--primary);
+  padding: 1.25rem 0;
+  color: white;
+}
+
+.headerContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  color: white;
+}
+
+.headerActions {
+  display: flex;
+  gap: 1rem;
+}
+
+.formContainer {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+.courseForm {
+  background-color: white;
+  border-radius: var(--radius-md);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.formSection {
+  margin-bottom: 2.5rem;
+}
+
+.formSectionTitle {
+  font-size: 1.25rem;
+  color: var(--text-dark);
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+.formInput, .formTextarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  color: var(--text-dark);
+}
+
+.formInput:focus, .formTextarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.1);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .formRow {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.required {
+  color: var(--error);
+}
+
+.secondaryButton {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.secondaryButton:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  text-decoration: none;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.addButton {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.addButton:hover {
+  background-color: var(--primary-lighter);
+}
+
+.moduleCard {
+  background-color: var(--secondary-light);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.moduleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.moduleTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-dark);
+}
+
+.removeButton {
+  background-color: transparent;
+  color: var(--error);
+  border: 1px solid var(--error-light);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.removeButton:hover {
+  background-color: var(--error-light);
+}
+
+.lessonNote {
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  border: 1px dashed var(--border-light);
+}
+
+.lessonNote p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-medium);
+  text-align: center;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.cancelButton {
+  background-color: var(--secondary);
+  color: var(--text-dark);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.cancelButton:hover {
+  background-color: var(--secondary-dark);
+  text-decoration: none;
+}
+
+.submitButton {
+  background-color: var(--primary);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+}
+
+.submitButton:hover {
+  background-color: var(--primary-dark);
+}
+
+.submitButton:disabled {
+  background-color: var(--primary-light);
+  cursor: not-allowed;
+}
+
+.errorMessage {
+  background-color: var(--error-light);
+  color: var(--error);
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  margin-top: 1rem;
+}
+
+.loadingContainer {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 3px solid rgba(74, 108, 247, 0.2);
+  border-top-color: var(--primary);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+} 

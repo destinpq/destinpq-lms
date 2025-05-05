@@ -1,0 +1,11 @@
+.notification-bell {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+}
+
+.notification-bell:hover {
+  opacity: 0.8;
+} 

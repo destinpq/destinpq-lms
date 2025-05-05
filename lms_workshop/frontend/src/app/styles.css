@@ -1,0 +1,163 @@
+/* Testing CSS file to check if styles are applied */
+
+.page-container {
+  animation: fadeIn 0.7s ease;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Page layout helpers */
+.page-section {
+  padding: 3rem 0;
+}
+
+.page-header {
+  padding: 2rem 0;
+  margin-bottom: 2rem;
+  background-color: var(--surface-light);
+  border-bottom: 1px solid var(--surface-dark);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.align-center {
+  align-items: center;
+}
+
+.gap-sm {
+  gap: 0.5rem;
+}
+
+.gap-md {
+  gap: 1rem;
+}
+
+.gap-lg {
+  gap: 2rem;
+}
+
+/* Spacing utilities */
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-8 { margin-top: 2rem; }
+
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Login and signup form styles */
+.auth-form {
+  max-width: 450px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: var(--surface-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.auth-form h2 {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.auth-form-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+/* Override some Ant Design styles */
+.ant-form-item {
+  margin-bottom: 1.5rem;
+}
+
+.ant-form-item-label > label {
+  font-weight: 500;
+}
+
+.ant-input-affix-wrapper {
+  border-radius: var(--radius-md);
+}
+
+:root {
+  --primary: #4a6cf7;
+  --primary-dark: #3a56d4;
+  --primary-light: #eef1fe;
+  --primary-lighter: #f5f7ff;
+  --secondary: #f5f7fa;
+  --secondary-dark: #e0e4ea;
+  --secondary-light: #f8fafc;
+  
+  --text-dark: #212b36;
+  --text-regular: #4b5563;
+  --text-medium: #637381;
+  --text-light: #94a3b8;
+  
+  --border-light: #e5e7eb;
+  --background-light: #f9fafb;
+  
+  --error: #ef4444;
+  --error-light: #fee2e2;
+  --success: #22c55e;
+  --success-light: #dcfce7;
+  --warning: #f59e0b;
+  --warning-light: #fef3c7;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+}
+
+html, 
+body {
+  padding: 0;
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  color: var(--text-regular);
+  background-color: var(--background-light);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-dark);
+  margin-top: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+} 
