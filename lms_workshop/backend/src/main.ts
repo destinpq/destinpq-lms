@@ -17,38 +17,19 @@ async function bootstrap() {
   try {
     // Create the NestJS application with all needed options
     const app = await NestFactory.create(AppModule, {
-      // We configure CORS below, so no need to enable it here initially
-      // cors: true, 
+      cors: {
+        origin: '*',
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+        credentials: false  // MUST be false when using wildcard origin
+      },
       logger: ['error', 'warn', 'log', 'debug', 'verbose'],
-      // Abort application startup if it takes too long (60 seconds)
       abortOnError: true,
       bufferLogs: true,
     });
     
-    // CORS Configuration: Explicitly allow the frontend origin
-    const allowedOrigins: string[] = [
-      'https://www.drakanksha.co', 
-      // Add other origins if needed (e.g., localhost for development)
-      'http://localhost:3000', 
-      'http://localhost:3001' 
-    ];
-    
-    logger.log(`Configuring CORS for origins: ${allowedOrigins.join(', ')}`);
-    
-    app.enableCors({
-      origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-          callback(null, true);
-        } else {
-          const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-          callback(new Error(msg), false);
-        }
-      },
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      credentials: true,
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    });
+    // Log CORS configuration
+    logger.log('CORS ENABLED WITH WILDCARD ORIGIN (*)');
     
     // Setup global validation pipe
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
