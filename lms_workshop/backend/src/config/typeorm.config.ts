@@ -32,4 +32,8 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
     HomeworkResponse
   ],
   synchronize: process.env.NODE_ENV !== 'production',
+  ssl: process.env.DB_SSLMODE === 'require' ? { rejectUnauthorized: false } : false,
+  extra: {
+    ssl: process.env.DB_SSLMODE === 'require'
+  }
 }; 
