@@ -17,19 +17,46 @@ async function bootstrap() {
   try {
     // Create the NestJS application with all needed options
     const app = await NestFactory.create(AppModule, {
-      cors: {
-        origin: '*',
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-        credentials: false  // MUST be false when using wildcard origin
-      },
+      // CORS will be configured separately
       logger: ['error', 'warn', 'log', 'debug', 'verbose'],
       abortOnError: true,
       bufferLogs: true,
     });
     
-    // Log CORS configuration
-    logger.log('CORS ENABLED WITH WILDCARD ORIGIN (*)');
+    // ===== CORS CONFIGURATION =====
+    // Read CORS settings from environment variables
+    const corsOrigins = process.env.APP_CORS_ALLOW_ORIGINS || '*';
+    const corsMethods = process.env.APP_CORS_ALLOW_METHODS || 'GET,POST,PUT,DELETE,PATCH,OPTIONS';
+    const corsHeaders = process.env.APP_CORS_ALLOW_HEADERS || 'Content-Type,Authorization,X-Requested-With';
+    
+    logger.log('=====================================================');
+    logger.log('CORS CONFIGURATION');
+    logger.log(`Origins: ${corsOrigins}`);
+    logger.log(`Methods: ${corsMethods}`);
+    logger.log(`Headers: ${corsHeaders}`);
+    logger.log('=====================================================');
+    
+    // Apply CORS configuration - special handling for wildcard vs. specific origins
+    if (corsOrigins.trim() === '*') {
+      logger.log('Using wildcard CORS configuration');
+      app.enableCors({
+        origin: '*',
+        methods: corsMethods.split(',').map(method => method.trim()),
+        allowedHeaders: corsHeaders.split(',').map(header => header.trim()),
+        credentials: false // Must be false when using wildcard
+      });
+    } else {
+      logger.log('Using specific origins CORS configuration');
+      const originList = corsOrigins.split(',').map(origin => origin.trim());
+      logger.log(`Allowed origins: ${JSON.stringify(originList)}`);
+      
+      app.enableCors({
+        origin: originList,
+        methods: corsMethods.split(',').map(method => method.trim()),
+        allowedHeaders: corsHeaders.split(',').map(header => header.trim()),
+        credentials: true // Can be true with specific origins
+      });
+    }
     
     // Setup global validation pipe
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
