@@ -17,16 +17,34 @@ async function bootstrap() {
   try {
     // Create the NestJS application with all needed options
     const app = await NestFactory.create(AppModule, {
-      cors: true,
+      // We configure CORS below, so no need to enable it here initially
+      // cors: true, 
       logger: ['error', 'warn', 'log', 'debug', 'verbose'],
       // Abort application startup if it takes too long (60 seconds)
       abortOnError: true,
       bufferLogs: true,
     });
     
-    // CORS must be enabled for DO App Platform
+    // CORS Configuration: Explicitly allow the frontend origin
+    const allowedOrigins = [
+      'https://www.drakanksha.co', 
+      // Add other origins if needed (e.g., localhost for development)
+      'http://localhost:3000', 
+      'http://localhost:3001' 
+    ];
+    
+    logger.log(`Configuring CORS for origins: ${allowedOrigins.join(', ')}`);
+    
     app.enableCors({
-      origin: '*', // Allow all origins
+      origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+          const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+          return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+      },
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       credentials: true,
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
