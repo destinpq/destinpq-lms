@@ -5,16 +5,28 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  logger.log('Starting application...');
+  
+  // Critical startup logging
+  logger.log('=====================================================');
+  logger.log('STARTING APPLICATION');
+  logger.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.log(`Port: ${process.env.PORT || 8080}`);
+  logger.log(`Database: ${process.env.DB_HOST}:${process.env.DB_PORT}`);
+  logger.log('=====================================================');
   
   try {
+    // Create the NestJS application with all needed options
     const app = await NestFactory.create(AppModule, {
       cors: true,
       logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+      // Abort application startup if it takes too long (60 seconds)
+      abortOnError: true,
+      bufferLogs: true,
     });
     
+    // CORS must be enabled for DO App Platform
     app.enableCors({
-      origin: true,
+      origin: '*', // Allow all origins
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       credentials: true,
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -33,21 +45,34 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document);
     
-    // For DigitalOcean health checks - hardcode port 8080 no matter what
-    await app.listen(8080, '0.0.0.0');
+    // IMPORTANT: Listen on all interfaces (0.0.0.0) with port 8080
+    // This is critical for DigitalOcean App Platform
+    const port = 8080;
     
-    logger.log(`⚡️ Application is running on: http://0.0.0.0:8080`);
-    logger.log(`⚡️ App is also available at: http://localhost:8080`);
-    logger.log(`📚 Swagger documentation available at: http://localhost:8080/api`);
-    logger.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-    logger.log(`💾 Database host: ${process.env.DB_HOST}`);
+    logger.log(`Starting server on port ${port}...`);
+    await app.listen(port, '0.0.0.0');
+    
+    logger.log('=====================================================');
+    logger.log(`✅ Server successfully started!`);
+    logger.log(`📡 Listening on: http://0.0.0.0:${port}`);
+    logger.log(`📚 API docs: http://0.0.0.0:${port}/api`);
+    logger.log('=====================================================');
   } catch (error) {
-    logger.error(`❌ Failed to start application: ${error.message}`, error.stack);
+    logger.error('=====================================================');
+    logger.error(`❌ FATAL ERROR: Failed to start application!`);
+    logger.error(`Error Message: ${error.message}`);
+    logger.error(`Stack Trace: ${error.stack}`);
+    logger.error('=====================================================');
+    
+    // Exit immediately when we hit an error - fail fast for DigitalOcean
     process.exit(1);
   }
 }
 
 bootstrap().catch(err => {
-  console.error('💥 Unhandled bootstrap error:', err);
+  console.error('=====================================================');
+  console.error('💥 UNHANDLED BOOTSTRAP ERROR');
+  console.error(err);
+  console.error('=====================================================');
   process.exit(1);
 });
