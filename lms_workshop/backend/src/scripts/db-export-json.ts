@@ -1,4 +1,4 @@
-import { createConnection } from 'typeorm';
+import { DataSource } from 'typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
 import { typeOrmConfig } from '../config/typeorm.config';
@@ -13,11 +13,21 @@ async function exportDatabaseToJson() {
   console.log('📦 Starting database JSON export...');
   
   try {
-    // Connect to the database
-    const connection = await createConnection({
-      ...typeOrmConfig,
-      synchronize: false, // Ensure we don't modify the schema
+    // Create a new DataSource with explicit configuration
+    const dataSource = new DataSource({
+      type: 'postgres',
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432', 10),
+      username: process.env.DB_USERNAME || 'postgres',
+      password: process.env.DB_PASSWORD || 'tiger',
+      database: process.env.DB_DATABASE || 'psychology_lms',
+      entities: [],
+      synchronize: false,
+      ssl: process.env.DB_SSLMODE === 'require' ? { rejectUnauthorized: false } : false,
     });
+    
+    // Initialize the connection
+    const connection = await dataSource.initialize();
     
     console.log('🔌 Connected to database successfully');
     
@@ -41,7 +51,7 @@ async function exportDatabaseToJson() {
     // Create a metadata file with database info
     const metadata = {
       exportDate: new Date().toISOString(),
-      databaseName: typeOrmConfig.database,
+      databaseName: process.env.DB_DATABASE || 'psychology_lms', // Get from env instead of typeOrmConfig
       tableCount: tableNames.length,
       tables: {}
     };
@@ -103,7 +113,7 @@ async function exportDatabaseToJson() {
     console.log(`🎉 Database JSON export completed! Files saved to: ${outputDir}`);
     
     // Close the database connection
-    await connection.close();
+    await connection.destroy();
     
   } catch (error) {
     console.error('❌ Export failed:', error);
