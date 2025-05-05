@@ -1,0 +1,76 @@
+     table_name     |     column_name      |          data_type          
+--------------------+----------------------+-----------------------------
+ achievement        | id                   | integer
+ achievement        | title                | character varying
+ achievement        | description          | text
+ achievement        | type                 | USER-DEFINED
+ achievement        | imageUrl             | character varying
+ achievement        | criteria             | character varying
+ achievement        | courseId             | integer
+ achievement        | createdAt            | timestamp without time zone
+ achievement        | updatedAt            | timestamp without time zone
+ course             | id                   | integer
+ course             | title                | character varying
+ course             | description          | character varying
+ course             | instructor           | character varying
+ course             | associatedWorkshop   | character varying
+ course             | coverImage           | character varying
+ course             | maxStudents          | integer
+ course             | enrolledStudents     | integer
+ course             | totalWeeks           | integer
+ course             | totalModules         | integer
+ course             | status               | USER-DEFINED
+ course             | createdAt            | timestamp without time zone
+ course             | updatedAt            | timestamp without time zone
+ homework           | id                   | integer
+ homework           | title                | character varying
+ homework           | description          | text
+ homework           | category             | character varying
+ homework           | dueDate              | timestamp without time zone
+ homework           | status               | USER-DEFINED
+ homework           | assignedToId         | integer
+ homework           | studentResponse      | text
+ homework           | grade                | integer
+ homework           | instructorFeedback   | text
+ homework           | createdAt            | timestamp without time zone
+ homework           | updatedAt            | timestamp without time zone
+ homework           | courseId             | integer
+ lesson             | id                   | integer
+ lesson             | title                | character varying
+ lesson             | order                | integer
+ lesson             | content              | text
+ lesson             | moduleId             | integer
+ lesson             | createdAt            | timestamp without time zone
+ lesson             | updatedAt            | timestamp without time zone
+ message            | id                   | integer
+ message            | content              | text
+ message            | senderId             | integer
+ message            | recipientId          | integer
+ message            | status               | USER-DEFINED
+ message            | groupId              | character varying
+ message            | groupName            | character varying
+ message            | createdAt            | timestamp without time zone
+ message            | updatedAt            | timestamp without time zone
+ module             | id                   | integer
+ module             | title                | character varying
+ module             | order                | integer
+ module             | courseId             | integer
+ module             | createdAt            | timestamp without time zone
+ module             | updatedAt            | timestamp without time zone
+ user_achievements  | achievementId        | integer
+ user_achievements  | userId               | integer
+ workshop           | id                   | integer
+ workshop           | title                | character varying
+ workshop           | description          | text
+ workshop           | instructor           | character varying
+ workshop           | scheduledAt          | timestamp without time zone
+ workshop           | preparatoryMaterials | text
+ workshop           | category             | character varying
+ workshop           | isActive             | boolean
+ workshop           | createdAt            | timestamp without time zone
+ workshop           | updatedAt            | timestamp without time zone
+ workshop           | maxParticipants      | integer
+ workshop_attendees | workshopId           | integer
+ workshop_attendees | userId               | integer
+(72 rows)
+

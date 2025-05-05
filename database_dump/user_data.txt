@@ -1,0 +1,7 @@
+ id | firstName |  lastName   |            email            |                           password                           | isAdmin |         createdAt          |         updatedAt          
+----+-----------+-------------+-----------------------------+--------------------------------------------------------------+---------+----------------------------+----------------------------
+  1 | Test      | User        | test@example.com            | $2b$10$kY/.JruRfj4Z0P7ndcWFruU3bDXL/7zW3tuauRYobRBhoMOmj5wbC | f       | 2025-04-27 14:04:16.957217 | 2025-04-27 14:04:16.957217
+  2 | Admin     | User        | admin@example.com           | $2b$10$YyszcFFr7MSYRm1I9Wy9HOPJI.ceGKxvIsUbLb6qvxMhYoHPmRjPW | f       | 2025-04-27 14:12:44.449148 | 2025-04-27 14:12:44.449148
+  3 | Pratik    | Khanapurkar | khanapurkarpratik@gmail.com | $2b$10$24hXoZI/YVMTrqEMjcnW0ukjW.rDWrE4J55PERChbJIAd/MAeMt3. | f       | 2025-05-02 19:49:22.578475 | 2025-05-02 19:49:22.578475
+(3 rows)
+
