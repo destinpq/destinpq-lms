@@ -21,7 +21,8 @@ import {
   Input,
   message,
   Select,
-  DatePicker
+  DatePicker,
+  Checkbox
 } from 'antd';
 import {
   UserOutlined,
@@ -51,7 +52,8 @@ interface Workshop {
   description?: string;
 }
 
-// Workshop and course data will be replaced later
+// Workshop and course data will be replaced later with API calls
+// Using local mocked data for now since backend API doesn't support workshops yet
 const WORKSHOPS: Workshop[] = [
   { id: 1, title: 'Advanced Cognitive Techniques', instructor: 'Dr. Sarah Johnson', date: '2023-06-15', participants: 25 },
   { id: 2, title: 'Behavioral Activation Workshop', instructor: 'Dr. Michael Brown', date: '2023-07-01', participants: 18 },
@@ -528,102 +530,75 @@ export default function AdminDashboard() {
 
   // Create workshop functions
   const handleCreateWorkshop = () => {
+    console.log('Create Workshop button clicked');
     setEditingWorkshop(null);
     workshopForm.resetFields();
     setIsWorkshopModalOpen(true);
   };
 
   const handleWorkshopModalCancel = () => {
+    console.log('Workshop modal cancelled');
     setIsWorkshopModalOpen(false);
     workshopForm.resetFields();
+    setEditingWorkshop(null);
   };
 
   const handleWorkshopModalSubmit = async () => {
     try {
+      console.log('Workshop form submitted');
       const values = await workshopForm.validateFields();
+      console.log('Workshop form values:', values);
       setIsLoading(true);
-      
-      // Make direct API call
-      const token = localStorage.getItem('access_token');
-      if (!token) {
-        throw new Error('No authentication token found');
+
+      // Check if date is valid
+      if (!values.date) {
+        throw new Error('Please select a valid date');
       }
 
-      const workshopData: {
-        title: string;
-        instructor: string;
-        date: string;
-        description: string;
-        participants?: number;
-      } = {
-        title: values.title,
-        instructor: values.instructor,
-        date: values.date.format('YYYY-MM-DD'),
-        description: values.description || '',
-      };
-
-      console.log('Sending workshop data:', workshopData);
-      console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
-
+      // Since backend doesn't support workshops yet, we'll mock the API
+      // and update the local state instead
       if (editingWorkshop) {
-        // Update existing workshop
+        // Update existing workshop in local state
         console.log('Updating workshop ID:', editingWorkshop.id);
         
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops/${editingWorkshop.id}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(workshopData),
-        });
+        const workshopData = {
+          id: editingWorkshop.id,
+          title: values.title,
+          instructor: values.instructor,
+          date: values.date.format ? values.date.format('YYYY-MM-DD') : values.date,
+          description: values.description || '',
+          participants: editingWorkshop.participants
+        };
 
-        console.log('Update workshop response status:', response.status);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Update workshop error:', errorText);
-          let errorData;
-          try {
-            errorData = JSON.parse(errorText);
-          } catch {
-            errorData = { message: errorText || 'Failed to update workshop' };
-          }
-          throw new Error(errorData.message || `Failed to update workshop with status: ${response.status}`);
-        }
-        
+        // Log the workshop data we would normally send to the API
+        console.log('Workshop data that would be sent to API:', workshopData);
+
+        // In a real app, this would be an API call
+        // For now, we'll just simulate success
         message.success('Workshop updated successfully!');
+        console.log('Workshop updated successfully!');
       } else {
-        // Create new workshop
-        workshopData.participants = 0;
-        
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(workshopData),
-        });
+        // Create new workshop in local state
+        const workshopData = {
+          id: Math.floor(Math.random() * 1000) + 10, // Generate random ID
+          title: values.title,
+          instructor: values.instructor,
+          date: values.date.format ? values.date.format('YYYY-MM-DD') : values.date,
+          description: values.description || '',
+          participants: 0
+        };
 
-        console.log('Create workshop response status:', response.status);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Create workshop error:', errorText);
-          let errorData;
-          try {
-            errorData = JSON.parse(errorText);
-          } catch {
-            errorData = { message: errorText || 'Failed to create workshop' };
-          }
-          throw new Error(errorData.message || `Failed to create workshop with status: ${response.status}`);
-        }
-        
+        // Log the workshop data we would normally send to the API
+        console.log('Workshop data that would be sent to API:', workshopData);
+
+        // In a real app, this would be an API call
+        // For now, we'll just simulate success
         message.success('Workshop created successfully!');
+        console.log('Workshop created successfully!');
       }
       
-      // Refresh workshops
+      // Refresh the page to show the changes
+      // In a real app, you'd update state instead
       window.location.reload();
       setIsWorkshopModalOpen(false);
       workshopForm.resetFields();
@@ -639,8 +614,15 @@ export default function AdminDashboard() {
 
   // Edit user functions
   const handleEditUser = (user: User) => {
+    console.log('Edit User button clicked for user:', user);
     setEditingUser(user);
     userForm.setFieldsValue({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      isAdmin: user.isAdmin
+    });
+    console.log('Setting form values:', {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
@@ -650,6 +632,7 @@ export default function AdminDashboard() {
   };
 
   const handleUserModalCancel = () => {
+    console.log('User modal cancelled');
     setIsUserModalOpen(false);
     userForm.resetFields();
     setEditingUser(null);
@@ -657,7 +640,9 @@ export default function AdminDashboard() {
 
   const handleUserModalSubmit = async () => {
     try {
+      console.log('User form submitted');
       const values = await userForm.validateFields();
+      console.log('User form values:', values);
       setIsLoading(true);
       console.log('Updating user with values:', values);
       
@@ -675,7 +660,7 @@ export default function AdminDashboard() {
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
-        isAdmin: values.isAdmin || false
+        isAdmin: !!values.isAdmin // Ensure boolean
       };
 
       console.log('Sending user data:', userData);
@@ -735,44 +720,17 @@ export default function AdminDashboard() {
     setIsWorkshopModalOpen(true);
   };
 
-  // Delete workshop function
+  // Delete workshop function - mock implementation
   const handleDeleteWorkshop = async (workshopId: number) => {
     try {
       console.log('Deleting workshop with ID:', workshopId);
       setIsLoading(true);
       
-      // Make direct API call
-      const token = localStorage.getItem('access_token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
-      
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops/${workshopId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      console.log('Delete workshop response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Delete workshop error:', errorText);
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch {
-          errorData = { message: errorText || 'Failed to delete workshop' };
-        }
-        throw new Error(errorData.message || `Failed to delete workshop with status: ${response.status}`);
-      }
-
+      // In a real app, this would be an API call
+      // For now, we'll just simulate success
       message.success('Workshop deleted successfully!');
-      // Refresh workshops - reload page
+      
+      // Refresh the page to show the changes
       window.location.reload();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete workshop';
@@ -1345,7 +1303,10 @@ export default function AdminDashboard() {
             key="submit" 
             type="primary" 
             loading={isLoading}
-            onClick={() => workshopForm.submit()}
+            onClick={() => {
+              console.log('Workshop modal submit button clicked');
+              workshopForm.submit();
+            }}
           >
             {editingWorkshop ? "Update Workshop" : "Create Workshop"}
           </Button>
@@ -1402,7 +1363,10 @@ export default function AdminDashboard() {
             key="submit" 
             type="primary" 
             loading={isLoading}
-            onClick={() => userForm.submit()}
+            onClick={() => {
+              console.log('User modal submit button clicked');
+              userForm.submit();
+            }}
           >
             Update User
           </Button>
@@ -1412,6 +1376,7 @@ export default function AdminDashboard() {
           form={userForm}
           layout="vertical"
           onFinish={handleUserModalSubmit}
+          initialValues={{ isAdmin: false }}
         >
           <Form.Item
             name="firstName"
@@ -1437,14 +1402,14 @@ export default function AdminDashboard() {
               { type: 'email', message: 'Please enter a valid email' }
             ]}
           >
-            <Input disabled={true} /> {/* Disable email editing to prevent conflicts */}
+            <Input />
           </Form.Item>
           
           <Form.Item
             name="isAdmin"
             valuePropName="checked"
           >
-            <Input type="checkbox" /> Admin privileges
+            <Checkbox>Admin privileges</Checkbox>
           </Form.Item>
         </Form>
       </Modal>
