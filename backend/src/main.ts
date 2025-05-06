@@ -27,8 +27,8 @@ async function bootstrap() {
     exclude: ['health', 'healthz'],
   });
   
-  // Get port from environment variable or use default 3001
-  const port = process.env.PORT || 3001;
+  // Get port from environment variable or use default 15001
+  const port = process.env.PORT || 15001;
   
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}`);

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
-import { Input, Button, Typography, Alert, Space } from 'antd';
+import { Input, Button, Typography, Alert, Space, Form } from 'antd';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
@@ -69,7 +69,7 @@ export default function Login() {
   const testDirectApi = async () => {
     setDirectApiResult("Testing API directly...");
     try {
-      const response = await fetch('http://localhost:23001/auth/login', {
+      const response = await fetch('http://localhost:15001/lms/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -95,10 +95,10 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen py-8 px-4" style={{
+    <div className="min-h-screen flex items-center justify-center py-8 px-4" style={{
       background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
     }}>
-      <div className="max-w-md mx-auto" style={{
+      <div className="w-full max-w-md" style={{
         backgroundColor: 'white',
         borderRadius: '16px',
         boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
@@ -119,10 +119,11 @@ export default function Login() {
         }} />
         
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <div className="mb-8">
+          <div className="mb-8 text-center">
             <Title level={2} style={{ 
               color: '#2d3f7c', 
               textAlign: 'center',
+              margin: '0 auto 16px',
               background: 'linear-gradient(90deg, #2d3f7c 0%, #5b45a8 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -159,51 +160,54 @@ export default function Login() {
             />
           )}
 
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium mb-1">
-                  Email address
-                </label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  size="large"
-                  autoComplete="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="Your email address"
-                  prefix={<MailOutlined className="text-gray-400 mr-2" />}
-                />
-              </div>
-              
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label htmlFor="password" className="block text-sm font-medium">
-                    Password
-                  </label>
-                  <Link href="/forgot-password" style={{ 
-                    fontSize: '14px', 
-                    background: 'linear-gradient(90deg, #2d3f7c 0%, #5b45a8 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text'
-                  }}>
-                    Forgot password?
-                  </Link>
-                </div>
-                <Input.Password
-                  id="password"
-                  name="password"
-                  size="large"
-                  autoComplete="current-password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  placeholder="Your password"
-                  prefix={<LockOutlined className="text-gray-400 mr-2" />}
-                />
-              </div>
+          <Form
+            layout="vertical"
+            onFinish={handleSubmit}
+            style={{ textAlign: 'center' }}
+          >
+            <Form.Item
+              label={<div style={{ textAlign: 'center', width: '100%' }}>Email address</div>}
+              style={{ marginBottom: 16 }}
+            >
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                size="large"
+                autoComplete="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Your email address"
+                prefix={<MailOutlined className="text-gray-400 mr-2" />}
+              />
+            </Form.Item>
+            
+            <Form.Item 
+              label={<div style={{ textAlign: 'center', width: '100%' }}>Password</div>}
+              style={{ marginBottom: 6 }}
+            >
+              <Input.Password
+                id="password"
+                name="password"
+                size="large"
+                autoComplete="current-password"
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="Your password"
+                prefix={<LockOutlined className="text-gray-400 mr-2" />}
+              />
+            </Form.Item>
+
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <Link href="/forgot-password" style={{ 
+                fontSize: '14px',
+                background: 'linear-gradient(90deg, #2d3f7c 0%, #5b45a8 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>
+                Forgot password?
+              </Link>
             </div>
 
             <Space direction="vertical" style={{ width: '100%' }}>
@@ -233,7 +237,7 @@ export default function Login() {
                 Test Direct API Connection
               </Button>
             </Space>
-          </form>
+          </Form>
 
           <div className="mt-8 pt-6 border-t border-gray-200 text-center">
             <Text style={{ color: '#666' }}>

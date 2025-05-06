@@ -36,7 +36,7 @@ export default function CoursePage() {
         setError(null);
         
         // Fetch from backend API
-        const response = await fetch(`http://localhost:23001/courses/${id}`);
+        const response = await fetch(`http://localhost:15001/lms/courses/${id}`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch course data: ${response.statusText}`);

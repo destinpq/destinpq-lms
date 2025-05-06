@@ -4,8 +4,42 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
 import Link from 'next/link';
-import { Badge, Button, Card, List, Avatar, Input, Tag } from 'antd';
-import { MessageOutlined, ClockCircleOutlined, BookOutlined, BellOutlined } from '@ant-design/icons';
+import { 
+  Badge, 
+  Button, 
+  Card, 
+  List, 
+  Avatar, 
+  Input, 
+  Tag, 
+  Layout, 
+  Typography, 
+  Row, 
+  Col, 
+  Grid, 
+  Space, 
+  Menu, 
+  Tabs, 
+  Progress, 
+  Spin,
+  Divider,
+  Statistic 
+} from 'antd';
+import { 
+  MessageOutlined, 
+  ClockCircleOutlined, 
+  BookOutlined, 
+  BellOutlined, 
+  LogoutOutlined, 
+  TrophyOutlined,
+  BookFilled,
+  RightOutlined
+} from '@ant-design/icons';
+
+const { Header, Content } = Layout;
+const { Title, Text, Paragraph } = Typography;
+const { TabPane } = Tabs;
+const { useBreakpoint } = Grid;
 
 export default function StudentDashboard() {
   const { user, loading, signout } = useAuth();
@@ -17,6 +51,8 @@ export default function StudentDashboard() {
     minutes: 0,
     seconds: 0
   });
+  
+  const screens = useBreakpoint();
   
   // Mock data for demo purposes
   const nextWorkshop = {
@@ -114,8 +150,8 @@ export default function StudentDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <Spin size="large" />
       </div>
     );
   }
@@ -134,148 +170,114 @@ export default function StudentDashboard() {
     }).format(date);
   };
 
+  const handleTabChange = (key: string) => {
+    setActiveTab(key);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Student Dashboard</h1>
-          <div className="flex items-center space-x-4">
-            <Badge count={3} size="small">
-              <BellOutlined style={{ fontSize: '18px', cursor: 'pointer' }} />
-            </Badge>
-            <span className="text-sm text-gray-600">
-              Welcome, {user.displayName || user.email}
-            </span>
-            <button
-              onClick={signout}
-              className="text-sm text-red-600 hover:text-red-800"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+    <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
+      <Header style={{ background: '#fff', padding: '0 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Title level={4} style={{ margin: 0 }}>Student Dashboard</Title>
+        <Space>
+          <Badge count={3} size="small">
+            <BellOutlined style={{ fontSize: 18, cursor: 'pointer' }} />
+          </Badge>
+          <Text style={{ margin: '0 16px' }}>
+            Welcome, {user.displayName || user.email}
+          </Text>
+          <Button 
+            type="text" 
+            danger 
+            icon={<LogoutOutlined />} 
+            onClick={signout}
+          >
+            Logout
+          </Button>
+        </Space>
+      </Header>
 
-      {/* Tabs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              className={`${
-                activeTab === 'dashboard'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-              onClick={() => setActiveTab('dashboard')}
-            >
-              Dashboard
-            </button>
-            <button
-              className={`${
-                activeTab === 'courses'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-              onClick={() => setActiveTab('courses')}
-            >
-              My Courses
-            </button>
-            <button
-              className={`${
-                activeTab === 'achievements'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-              onClick={() => setActiveTab('achievements')}
-            >
-              Achievements
-            </button>
-            <button
-              className={`${
-                activeTab === 'certificate'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-              onClick={() => setActiveTab('certificate')}
-            >
-              Certificates
-            </button>
-            <button
-              className={`${
-                activeTab === 'messages'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
-              onClick={() => setActiveTab('messages')}
-            >
-              Messages
-              <Badge count={2} size="small" className="ml-2" />
-            </button>
-          </nav>
-        </div>
-      </div>
-
-      {/* Tab Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {activeTab === 'dashboard' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Next Workshop Card with Countdown */}
-            <div className="lg:col-span-2">
-              <Card 
-                title={
-                  <div className="flex items-center">
-                    <ClockCircleOutlined className="mr-2 text-blue-500" />
-                    <span>Next Workshop</span>
-                  </div>
-                }
-                className="shadow-md hover:shadow-lg transition-shadow"
-              >
-                <h3 className="text-xl font-semibold mb-2">{nextWorkshop.title}</h3>
-                <p className="text-gray-600 mb-4">
-                  Instructor: {nextWorkshop.instructor} <br />
-                  {formatDate(nextWorkshop.date)}
-                </p>
-                
-                <div className="grid grid-cols-4 gap-2 mb-4">
-                  <div className="text-center p-2 bg-blue-50 rounded">
-                    <div className="text-2xl font-bold text-blue-600">{timeLeft.days}</div>
-                    <div className="text-xs text-gray-500">Days</div>
-                  </div>
-                  <div className="text-center p-2 bg-blue-50 rounded">
-                    <div className="text-2xl font-bold text-blue-600">{timeLeft.hours}</div>
-                    <div className="text-xs text-gray-500">Hours</div>
-                  </div>
-                  <div className="text-center p-2 bg-blue-50 rounded">
-                    <div className="text-2xl font-bold text-blue-600">{timeLeft.minutes}</div>
-                    <div className="text-xs text-gray-500">Minutes</div>
-                  </div>
-                  <div className="text-center p-2 bg-blue-50 rounded">
-                    <div className="text-2xl font-bold text-blue-600">{timeLeft.seconds}</div>
-                    <div className="text-xs text-gray-500">Seconds</div>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <Button type="primary" href={nextWorkshop.link}>
-                    Join Workshop
-                  </Button>
-                  <a className="text-blue-600 hover:underline" href={`${nextWorkshop.link}/materials`}>
-                    View preparatory materials
-                  </a>
-                </div>
-              </Card>
-              
-              {/* Upcoming Sessions */}
-              <div className="mt-6">
+      <Content style={{ padding: '24px', maxWidth: 1200, margin: '0 auto', width: '100%' }}>
+        <Tabs 
+          activeKey={activeTab} 
+          onChange={handleTabChange}
+          tabBarExtraContent={activeTab === 'messages' && <Badge count={2} />}
+        >
+          <TabPane tab="Dashboard" key="dashboard">
+            <Row gutter={[24, 24]}>
+              <Col xs={24} lg={16}>
+                {/* Next Workshop Card */}
                 <Card 
                   title={
-                    <div className="flex items-center">
-                      <ClockCircleOutlined className="mr-2 text-blue-500" />
-                      <span>Upcoming Live Sessions</span>
-                    </div>
+                    <Space>
+                      <ClockCircleOutlined style={{ color: '#1890ff' }} />
+                      <span>Next Workshop</span>
+                    </Space>
                   }
-                  className="shadow-md"
+                  style={{ marginBottom: 24 }}
+                >
+                  <Title level={4} style={{ marginTop: 0 }}>{nextWorkshop.title}</Title>
+                  <Paragraph>
+                    <strong>Instructor:</strong> {nextWorkshop.instructor} <br />
+                    <strong>Date:</strong> {formatDate(nextWorkshop.date)}
+                  </Paragraph>
+                  
+                  <Row gutter={16} style={{ textAlign: 'center', marginBottom: 24 }}>
+                    <Col span={6}>
+                      <Card style={{ background: '#f0f7ff' }}>
+                        <Statistic 
+                          title="Days" 
+                          value={timeLeft.days} 
+                          valueStyle={{ color: '#1890ff', fontWeight: 'bold' }}
+                        />
+                      </Card>
+                    </Col>
+                    <Col span={6}>
+                      <Card style={{ background: '#f0f7ff' }}>
+                        <Statistic 
+                          title="Hours" 
+                          value={timeLeft.hours} 
+                          valueStyle={{ color: '#1890ff', fontWeight: 'bold' }}
+                        />
+                      </Card>
+                    </Col>
+                    <Col span={6}>
+                      <Card style={{ background: '#f0f7ff' }}>
+                        <Statistic 
+                          title="Minutes" 
+                          value={timeLeft.minutes} 
+                          valueStyle={{ color: '#1890ff', fontWeight: 'bold' }}
+                        />
+                      </Card>
+                    </Col>
+                    <Col span={6}>
+                      <Card style={{ background: '#f0f7ff' }}>
+                        <Statistic 
+                          title="Seconds" 
+                          value={timeLeft.seconds} 
+                          valueStyle={{ color: '#1890ff', fontWeight: 'bold' }}
+                        />
+                      </Card>
+                    </Col>
+                  </Row>
+                  
+                  <Row justify="space-between" align="middle">
+                    <Button type="primary" href={nextWorkshop.link}>
+                      Join Workshop
+                    </Button>
+                    <Button type="link" href={`${nextWorkshop.link}/materials`}>
+                      View preparatory materials
+                    </Button>
+                  </Row>
+                </Card>
+                
+                {/* Upcoming Sessions */}
+                <Card 
+                  title={
+                    <Space>
+                      <ClockCircleOutlined style={{ color: '#1890ff' }} />
+                      <span>Upcoming Live Sessions</span>
+                    </Space>
+                  }
                 >
                   <List
                     itemLayout="horizontal"
@@ -292,233 +294,293 @@ export default function StudentDashboard() {
                         <List.Item.Meta
                           title={<a href={item.link}>{item.title}</a>}
                           description={
-                            <div>
-                              <p><strong>{item.course}</strong></p>
-                              <p>
-                                Instructor: {item.instructor}<br />
-                                {formatDate(item.date)}
-                              </p>
-                            </div>
+                            <>
+                              <Text strong>{item.course}</Text><br />
+                              <Text>Instructor: {item.instructor}</Text><br />
+                              <Text>{formatDate(item.date)}</Text>
+                            </>
                           }
                         />
                       </List.Item>
                     )}
                   />
                 </Card>
-              </div>
-            </div>
-            
-            {/* Sidebar - Pending Homework and Messages */}
-            <div className="space-y-6">
-              {/* Pending Homework */}
-              <Card 
-                title={
-                  <div className="flex items-center">
-                    <BookOutlined className="mr-2 text-blue-500" />
-                    <span>Pending Homework</span>
-                  </div>
-                }
-                className="shadow-md"
-              >
-                <List
-                  itemLayout="vertical"
-                  dataSource={pendingHomework}
-                  renderItem={item => (
-                    <List.Item
-                      key={item.id}
-                      extra={
-                        <Tag 
-                          color={item.status === 'Not Started' ? 'red' : 'orange'}
-                        >
-                          {item.status}
-                        </Tag>
-                      }
-                    >
-                      <List.Item.Meta
-                        title={<a href={item.link}>{item.title}</a>}
-                        description={
-                          <div>
-                            <p>{item.course}</p>
-                            <p className="text-red-600">Due: {formatDate(item.dueDate)}</p>
-                          </div>
-                        }
-                      />
-                      <Button type="default" size="small" href={item.link}>
-                        {item.status === 'Not Started' ? 'Start Assignment' : 'Continue Assignment'}
-                      </Button>
-                    </List.Item>
-                  )}
-                />
-              </Card>
+              </Col>
               
-              {/* Recent Messages */}
-              <Card 
-                title={
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <MessageOutlined className="mr-2 text-blue-500" />
-                      <span>Recent Messages</span>
-                    </div>
-                    <Badge count={2} />
-                  </div>
-                }
-                className="shadow-md"
-              >
-                <List
-                  itemLayout="horizontal"
-                  dataSource={recentMessages}
-                  renderItem={item => (
-                    <List.Item key={item.id}>
-                      <List.Item.Meta
-                        avatar={<Avatar src={item.avatar} />}
-                        title={
-                          <div className="flex justify-between">
-                            <span>{item.sender}</span>
-                            <span className="text-xs text-gray-500">{item.time}</span>
-                          </div>
-                        }
-                        description={
-                          <div className="flex items-start">
-                            <p className="mr-2">{item.message}</p>
-                            {item.unread && <Badge color="blue" />}
-                          </div>
-                        }
-                      />
-                    </List.Item>
-                  )}
-                />
-                <div className="mt-4 text-center">
-                  <Button type="link" onClick={() => setActiveTab('messages')}>
-                    View all messages
-                  </Button>
-                </div>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'courses' && (
-          <div>
-            <h2 className="text-xl font-semibold mb-4">My Enrolled Courses</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Course cards will be populated from database */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="h-48 bg-gray-200"></div>
-                <div className="p-4">
-                  <h3 className="text-lg font-medium">Cognitive Behavioral Techniques</h3>
-                  <div className="mt-2 h-2 bg-gray-200 rounded">
-                    <div className="h-2 bg-green-500 rounded w-1/3"></div>
-                  </div>
-                  <p className="mt-1 text-sm text-gray-600">Progress: 33%</p>
-                  <div className="mt-4">
-                    <Link 
-                      href="/course/sample-course-id" 
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                    >
-                      Continue Learning →
-                    </Link>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="h-48 bg-gray-200"></div>
-                <div className="p-4">
-                  <h3 className="text-lg font-medium">Neuroscience Fundamentals</h3>
-                  <div className="mt-2 h-2 bg-gray-200 rounded">
-                    <div className="h-2 bg-green-500 rounded w-1/2"></div>
-                  </div>
-                  <p className="mt-1 text-sm text-gray-600">Progress: 50%</p>
-                  <div className="mt-4">
-                    <Link 
-                      href="/course/sample-course-id-2" 
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                    >
-                      Continue Learning →
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'achievements' && (
-          <div>
-            <h2 className="text-xl font-semibold mb-4">My Achievements</h2>
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-lg font-medium">Your Learning Points</h3>
-                  <p className="text-3xl font-bold text-blue-600 mt-1">450</p>
-                </div>
-                <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm">
-                  Level 3 Learner
-                </div>
-              </div>
-              
-              <h3 className="text-lg font-medium mb-3">Badges Earned</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="flex flex-col items-center p-3 border rounded-lg">
-                  <div className="h-16 w-16 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-500 mb-2">
-                    🏆
-                  </div>
-                  <span className="text-sm font-medium">First Quiz Completed</span>
-                </div>
-                <div className="flex flex-col items-center p-3 border rounded-lg">
-                  <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center text-green-500 mb-2">
-                    📚
-                  </div>
-                  <span className="text-sm font-medium">Active Learner</span>
-                </div>
-                <div className="flex flex-col items-center p-3 border rounded-lg opacity-40">
-                  <div className="h-16 w-16 bg-purple-100 rounded-full flex items-center justify-center text-purple-500 mb-2">
-                    🧠
-                  </div>
-                  <span className="text-sm font-medium">Neuroscience Expert</span>
-                </div>
-                <div className="flex flex-col items-center p-3 border rounded-lg opacity-40">
-                  <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mb-2">
-                    💬
-                  </div>
-                  <span className="text-sm font-medium">Discussion Leader</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'certificate' && (
-          <div>
-            <h2 className="text-xl font-semibold mb-4">My Certificates</h2>
-            
-            <div className="space-y-6">
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-medium mb-2">You haven&apos;t earned any certificates yet</h3>
-                <p className="text-gray-600 mb-4">
-                  Complete a course to earn your first certificate. Certificates are awarded when you finish
-                  all modules and pass the required assessments.
-                </p>
-                <button 
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                  onClick={() => setActiveTab('courses')}
+              <Col xs={24} lg={8}>
+                {/* Pending Homework */}
+                <Card 
+                  title={
+                    <Space>
+                      <BookOutlined style={{ color: '#1890ff' }} />
+                      <span>Pending Homework</span>
+                    </Space>
+                  }
+                  style={{ marginBottom: 24 }}
                 >
-                  Go to my courses →
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {activeTab === 'messages' && (
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Messages</h2>
-            
-            <div className="bg-white rounded-lg shadow-md p-0 overflow-hidden">
-              <div className="flex h-[600px]">
+                  <List
+                    itemLayout="vertical"
+                    dataSource={pendingHomework}
+                    renderItem={item => (
+                      <List.Item
+                        key={item.id}
+                        extra={
+                          <Tag color={item.status === 'Not Started' ? 'error' : 'warning'}>
+                            {item.status}
+                          </Tag>
+                        }
+                      >
+                        <List.Item.Meta
+                          title={<a href={item.link}>{item.title}</a>}
+                          description={
+                            <>
+                              <Text>{item.course}</Text><br />
+                              <Text type="danger">Due: {formatDate(item.dueDate)}</Text>
+                            </>
+                          }
+                        />
+                        <Button type="default" size="small" href={item.link} style={{ marginTop: 8 }}>
+                          {item.status === 'Not Started' ? 'Start Assignment' : 'Continue Assignment'}
+                        </Button>
+                      </List.Item>
+                    )}
+                  />
+                </Card>
+                
+                {/* Recent Messages */}
+                <Card 
+                  title={
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Space>
+                        <MessageOutlined style={{ color: '#1890ff' }} />
+                        <span>Recent Messages</span>
+                      </Space>
+                      <Badge count={2} />
+                    </div>
+                  }
+                >
+                  <List
+                    itemLayout="horizontal"
+                    dataSource={recentMessages}
+                    renderItem={item => (
+                      <List.Item key={item.id}>
+                        <List.Item.Meta
+                          avatar={<Avatar src={item.avatar} />}
+                          title={
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Text strong={item.unread}>{item.sender}</Text>
+                              <Text type="secondary" style={{ fontSize: 12 }}>{item.time}</Text>
+                            </div>
+                          }
+                          description={
+                            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                              <Text style={{ marginRight: 8 }}>{item.message}</Text>
+                              {item.unread && <Badge color="blue" />}
+                            </div>
+                          }
+                        />
+                      </List.Item>
+                    )}
+                  />
+                  <div style={{ textAlign: 'center', marginTop: 16 }}>
+                    <Button type="link" onClick={() => setActiveTab('messages')}>
+                      View all messages
+                    </Button>
+                  </div>
+                </Card>
+              </Col>
+            </Row>
+          </TabPane>
+
+          <TabPane tab="My Courses" key="courses">
+            <Title level={4}>My Enrolled Courses</Title>
+            <Row gutter={[24, 24]}>
+              <Col xs={24} sm={12} lg={8}>
+                <Card 
+                  cover={<div style={{ height: 160, background: '#f5f5f5' }}></div>}
+                  hoverable
+                >
+                  <Card.Meta 
+                    title="Cognitive Behavioral Techniques" 
+                    description={
+                      <>
+                        <div style={{ marginTop: 16, marginBottom: 8 }}>
+                          <Progress percent={33} size="small" />
+                        </div>
+                        <Text type="secondary">Progress: 33%</Text>
+                        <div style={{ marginTop: 16 }}>
+                          <Button 
+                            type="link" 
+                            href="/course/sample-course-id"
+                            style={{ padding: 0 }}
+                          >
+                            Continue Learning <RightOutlined />
+                          </Button>
+                        </div>
+                      </>
+                    }
+                  />
+                </Card>
+              </Col>
+              
+              <Col xs={24} sm={12} lg={8}>
+                <Card 
+                  cover={<div style={{ height: 160, background: '#f5f5f5' }}></div>}
+                  hoverable
+                >
+                  <Card.Meta 
+                    title="Neuroscience Fundamentals" 
+                    description={
+                      <>
+                        <div style={{ marginTop: 16, marginBottom: 8 }}>
+                          <Progress percent={50} size="small" />
+                        </div>
+                        <Text type="secondary">Progress: 50%</Text>
+                        <div style={{ marginTop: 16 }}>
+                          <Button 
+                            type="link" 
+                            href="/course/sample-course-id-2"
+                            style={{ padding: 0 }}
+                          >
+                            Continue Learning <RightOutlined />
+                          </Button>
+                        </div>
+                      </>
+                    }
+                  />
+                </Card>
+              </Col>
+            </Row>
+          </TabPane>
+
+          <TabPane tab="Achievements" key="achievements">
+            <Title level={4}>My Achievements</Title>
+            <Card>
+              <Row align="middle" justify="space-between" style={{ marginBottom: 24 }}>
+                <Col>
+                  <Title level={4} style={{ margin: 0 }}>Your Learning Points</Title>
+                  <Title level={2} style={{ margin: '8px 0 0', color: '#1890ff' }}>450</Title>
+                </Col>
+                <Col>
+                  <Tag color="blue" style={{ fontSize: 14, padding: '4px 12px' }}>
+                    Level 3 Learner
+                  </Tag>
+                </Col>
+              </Row>
+              
+              <Divider />
+              
+              <Title level={4}>Badges Earned</Title>
+              <Row gutter={[16, 16]}>
+                <Col xs={12} sm={6}>
+                  <Card>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ 
+                        width: 64, 
+                        height: 64, 
+                        borderRadius: '50%', 
+                        background: '#fffbe6',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 16px',
+                        fontSize: 32
+                      }}>
+                        🏆
+                      </div>
+                      <Text strong>First Quiz Completed</Text>
+                    </div>
+                  </Card>
+                </Col>
+                <Col xs={12} sm={6}>
+                  <Card>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ 
+                        width: 64, 
+                        height: 64, 
+                        borderRadius: '50%', 
+                        background: '#f6ffed',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 16px',
+                        fontSize: 32
+                      }}>
+                        📚
+                      </div>
+                      <Text strong>Active Learner</Text>
+                    </div>
+                  </Card>
+                </Col>
+                <Col xs={12} sm={6}>
+                  <Card style={{ opacity: 0.4 }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ 
+                        width: 64, 
+                        height: 64, 
+                        borderRadius: '50%', 
+                        background: '#f9f0ff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 16px',
+                        fontSize: 32
+                      }}>
+                        🧠
+                      </div>
+                      <Text strong>Neuroscience Expert</Text>
+                    </div>
+                  </Card>
+                </Col>
+                <Col xs={12} sm={6}>
+                  <Card style={{ opacity: 0.4 }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ 
+                        width: 64, 
+                        height: 64, 
+                        borderRadius: '50%', 
+                        background: '#e6f7ff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 16px',
+                        fontSize: 32
+                      }}>
+                        💬
+                      </div>
+                      <Text strong>Discussion Leader</Text>
+                    </div>
+                  </Card>
+                </Col>
+              </Row>
+            </Card>
+          </TabPane>
+
+          <TabPane tab="Certificates" key="certificate">
+            <Title level={4}>My Certificates</Title>
+            <Card>
+              <Title level={4}>You haven&apos;t earned any certificates yet</Title>
+              <Paragraph>
+                Complete a course to earn your first certificate. Certificates are awarded when you finish
+                all modules and pass the required assessments.
+              </Paragraph>
+              <Button 
+                type="link" 
+                onClick={() => setActiveTab('courses')}
+                style={{ paddingLeft: 0 }}
+              >
+                Go to my courses <RightOutlined />
+              </Button>
+            </Card>
+          </TabPane>
+          
+          <TabPane tab="Messages" key="messages">
+            <Title level={4}>Messages</Title>
+            <Card bodyStyle={{ padding: 0 }}>
+              <Row>
                 {/* Chat List Sidebar */}
-                <div className="w-1/3 border-r overflow-y-auto">
-                  <div className="p-4 border-b">
+                <Col xs={24} lg={8} style={{ borderRight: '1px solid #f0f0f0' }}>
+                  <div style={{ padding: 16, borderBottom: '1px solid #f0f0f0' }}>
                     <Input.Search placeholder="Search messages..." />
                   </div>
                   <List
@@ -551,22 +613,35 @@ export default function StudentDashboard() {
                     renderItem={item => (
                       <List.Item
                         key={item.id}
-                        className={`cursor-pointer hover:bg-gray-50 ${item.unread ? 'bg-blue-50' : ''}`}
-                        style={{ padding: '12px 16px' }}
+                        style={{ 
+                          padding: '12px 16px', 
+                          cursor: 'pointer', 
+                          background: item.unread ? '#f0f7ff' : 'transparent'
+                        }}
+                        onClick={() => {}}
                       >
                         <List.Item.Meta
                           avatar={<Avatar src={item.avatar} />}
                           title={
-                            <div className="flex justify-between">
-                              <span className={item.unread ? 'font-bold' : ''}>{item.name}</span>
-                              <span className="text-xs text-gray-500">{item.time}</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Text strong={item.unread}>{item.name}</Text>
+                              <Text type="secondary" style={{ fontSize: 12 }}>{item.time}</Text>
                             </div>
                           }
                           description={
-                            <div className="flex justify-between">
-                              <p className={`truncate ${item.unread ? 'font-semibold text-gray-900' : 'text-gray-500'}`} style={{ maxWidth: '180px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Text
+                                style={{ 
+                                  maxWidth: 180,
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  fontWeight: item.unread ? 600 : 400,
+                                  color: item.unread ? 'rgba(0, 0, 0, 0.85)' : 'rgba(0, 0, 0, 0.45)'
+                                }}
+                              >
                                 {item.lastMessage}
-                              </p>
+                              </Text>
                               {item.unread && <Badge color="blue" />}
                             </div>
                           }
@@ -574,53 +649,57 @@ export default function StudentDashboard() {
                       </List.Item>
                     )}
                   />
-                </div>
+                </Col>
                 
                 {/* Chat Window */}
-                <div className="w-2/3 flex flex-col">
-                  <div className="p-4 border-b flex items-center">
+                <Col xs={24} lg={16} style={{ display: 'flex', flexDirection: 'column', height: 600 }}>
+                  <div style={{ padding: 16, borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center' }}>
                     <Avatar src="https://randomuser.me/api/portraits/women/44.jpg" size="large" />
-                    <div className="ml-3">
-                      <h3 className="font-medium">Dr. Sarah Johnson</h3>
-                      <p className="text-xs text-green-500">Online</p>
+                    <div style={{ marginLeft: 12 }}>
+                      <Text strong>Dr. Sarah Johnson</Text>
+                      <div><Text type="success" style={{ fontSize: 12 }}>Online</Text></div>
                     </div>
                   </div>
                   
-                  <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
-                    <div className="space-y-4">
-                      <div className="flex justify-start">
-                        <div className="bg-white p-3 rounded-lg shadow-sm max-w-xs">
-                          <p className="text-sm">Hi there! How&apos;s your progress on the CBT case study?</p>
-                          <p className="text-xs text-gray-500 mt-1">10:30 AM</p>
-                        </div>
+                  <div style={{ flex: 1, padding: 16, background: '#f5f7f9', overflowY: 'auto' }}>
+                    <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                      <div style={{ display: 'flex' }}>
+                        <Card size="small" style={{ maxWidth: 300 }}>
+                          <Text>Hi there! How&apos;s your progress on the CBT case study?</Text>
+                          <div><Text type="secondary" style={{ fontSize: 12 }}>10:30 AM</Text></div>
+                        </Card>
                       </div>
-                      <div className="flex justify-end">
-                        <div className="bg-blue-500 p-3 rounded-lg shadow-sm text-white max-w-xs">
-                          <p className="text-sm">I&apos;m about halfway through. Had some questions about the analysis section.</p>
-                          <p className="text-xs text-blue-100 mt-1">10:35 AM</p>
-                        </div>
+                      
+                      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <Card size="small" style={{ maxWidth: 300, background: '#1890ff' }}>
+                          <Text style={{ color: 'white' }}>
+                            I&apos;m about halfway through. Had some questions about the analysis section.
+                          </Text>
+                          <div><Text style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.75)' }}>10:35 AM</Text></div>
+                        </Card>
                       </div>
-                      <div className="flex justify-start">
-                        <div className="bg-white p-3 rounded-lg shadow-sm max-w-xs">
-                          <p className="text-sm">Let me know what questions you have. Don&apos;t forget it&apos;s due this Friday!</p>
-                          <p className="text-xs text-gray-500 mt-1">10:42 AM</p>
-                        </div>
+                      
+                      <div style={{ display: 'flex' }}>
+                        <Card size="small" style={{ maxWidth: 300 }}>
+                          <Text>
+                            Let me know what questions you have. Don&apos;t forget it&apos;s due this Friday!
+                          </Text>
+                          <div><Text type="secondary" style={{ fontSize: 12 }}>10:42 AM</Text></div>
+                        </Card>
                       </div>
-                    </div>
+                    </Space>
                   </div>
                   
-                  <div className="p-4 border-t">
-                    <div className="flex">
-                      <Input placeholder="Type a message..." className="mr-2" />
-                      <Button type="primary">Send</Button>
-                    </div>
+                  <div style={{ padding: 16, borderTop: '1px solid #f0f0f0', display: 'flex' }}>
+                    <Input placeholder="Type a message..." style={{ marginRight: 8 }} />
+                    <Button type="primary">Send</Button>
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+                </Col>
+              </Row>
+            </Card>
+          </TabPane>
+        </Tabs>
+      </Content>
+    </Layout>
   );
 } 

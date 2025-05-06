@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     try {
       // Direct fetch to the API without using the service
-      const response = await fetch('http://localhost:23001/auth/login', {
+      const response = await fetch('http://localhost:15001/lms/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
