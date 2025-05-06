@@ -1,11 +1,14 @@
 # DestinPQ Learning Management System
 
+[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-blue.svg)](https://github.com/destinpq/destinpq-lms)
+
 A full-stack Learning Management System built with Next.js frontend and NestJS backend.
 
 ## Live Demo
 
 - **Frontend**: [https://destinpq-lms-frontend-6860e9083f5a.herokuapp.com/](https://destinpq-lms-frontend-6860e9083f5a.herokuapp.com/)
 - **Backend API**: [https://destinpq-lms-63d26b382b63.herokuapp.com/](https://destinpq-lms-63d26b382b63.herokuapp.com/)
+- **GitHub**: [https://github.com/destinpq/destinpq-lms](https://github.com/destinpq/destinpq-lms)
 
 ## Project Structure
 
