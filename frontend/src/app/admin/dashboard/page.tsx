@@ -67,6 +67,8 @@ export default function AdminDashboard() {
   const [zoomForm] = Form.useForm();
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
   const [courseForm] = Form.useForm();
+  const [isWorkshopModalOpen, setIsWorkshopModalOpen] = useState(false);
+  const [workshopForm] = Form.useForm();
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   
   // State for real data
@@ -518,6 +520,77 @@ export default function AdminDashboard() {
     }
   };
 
+  // Create workshop functions
+  const handleCreateWorkshop = () => {
+    workshopForm.resetFields();
+    setIsWorkshopModalOpen(true);
+  };
+
+  const handleWorkshopModalCancel = () => {
+    setIsWorkshopModalOpen(false);
+    workshopForm.resetFields();
+  };
+
+  const handleWorkshopModalSubmit = async () => {
+    try {
+      const values = await workshopForm.validateFields();
+      setIsLoading(true);
+      console.log('Creating workshop with values:', values);
+      
+      // Make direct API call
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const workshopData = {
+        title: values.title,
+        instructor: values.instructor,
+        date: values.date.format('YYYY-MM-DD'),
+        description: values.description || '',
+        participants: 0
+      };
+
+      console.log('Sending workshop data:', workshopData);
+      console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(workshopData),
+      });
+
+      console.log('Create workshop response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Create workshop error:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText || 'Failed to create workshop' };
+        }
+        throw new Error(errorData.message || `Failed to create workshop with status: ${response.status}`);
+      }
+      
+      message.success('Workshop created successfully!');
+      // Refresh workshops - for now just reload page as we don't have a fetch workshops function
+      window.location.reload();
+      setIsWorkshopModalOpen(false);
+      workshopForm.resetFields();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create workshop';
+      console.error('Error creating workshop:', errorMessage);
+      message.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const userColumns = [
     {
       title: 'Name',
@@ -718,6 +791,7 @@ export default function AdminDashboard() {
                 <Button 
                   type="primary" 
                   icon={<PlusOutlined />}
+                  onClick={handleCreateWorkshop}
                 >
                   Create Workshop
                 </Button>
@@ -1040,6 +1114,63 @@ export default function AdminDashboard() {
             rules={[{ required: true, message: 'Please enter maximum students' }]}
           >
             <Input type="number" min={1} />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Workshop Modal */}
+      <Modal
+        title="Create New Workshop"
+        open={isWorkshopModalOpen}
+        onCancel={handleWorkshopModalCancel}
+        footer={[
+          <Button key="cancel" onClick={handleWorkshopModalCancel}>
+            Cancel
+          </Button>,
+          <Button 
+            key="submit" 
+            type="primary" 
+            loading={isLoading}
+            onClick={() => workshopForm.submit()}
+          >
+            Create Workshop
+          </Button>
+        ]}
+      >
+        <Form
+          form={workshopForm}
+          layout="vertical"
+          onFinish={handleWorkshopModalSubmit}
+        >
+          <Form.Item
+            name="title"
+            label="Workshop Title"
+            rules={[{ required: true, message: 'Please enter the workshop title' }]}
+          >
+            <Input />
+          </Form.Item>
+          
+          <Form.Item
+            name="instructor"
+            label="Instructor"
+            rules={[{ required: true, message: 'Please enter the instructor name' }]}
+          >
+            <Input />
+          </Form.Item>
+          
+          <Form.Item
+            name="date"
+            label="Workshop Date"
+            rules={[{ required: true, message: 'Please select a date' }]}
+          >
+            <DatePicker style={{ width: '100%' }} />
+          </Form.Item>
+          
+          <Form.Item
+            name="description"
+            label="Description"
+          >
+            <Input.TextArea rows={4} />
           </Form.Item>
         </Form>
       </Modal>
