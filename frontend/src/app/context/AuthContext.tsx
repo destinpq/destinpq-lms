@@ -73,40 +73,88 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === 'undefined') return;
     
     const token = localStorage.getItem('access_token');
+    const savedUser = localStorage.getItem('current_user');
     
-    if (token) {
-      // First try to decode the token directly to check admin status
-      const decodedToken = decodeJwt(token);
-      console.log('Decoded token:', decodedToken);
-      
-      if (decodedToken) {
-        // Check if token contains admin status
-        const isAdmin = decodedToken.isAdmin === true;
-        console.log('User admin status from token:', isAdmin);
-        
-        // Redirect based on admin status from token
-        if (isAdmin) {
-          console.log('Admin user detected in token, redirecting to admin dashboard');
-          router.push('/admin/dashboard');
-        }
+    console.log('Auth context initialized with token:', token ? 'exists' : 'none');
+    console.log('Saved user in localStorage:', savedUser);
+    
+    async function authenticateUser() {
+      if (!token) {
+        console.log('No token found, setting loading to false');
+        setLoading(false);
+        return;
       }
       
-      // Also verify token with backend and get full user profile
-      authService.getProfile()
-        .then(userData => {
-          console.log('User profile from API:', userData);
-          setUser(userData);
-        })
-        .catch(err => {
-          console.error('Error loading user profile:', err);
+      try {
+        // First try to decode the token directly
+        const decodedToken = decodeJwt(token);
+        console.log('Decoded token on refresh:', decodedToken);
+        
+        if (!decodedToken) {
+          console.log('Invalid token, clearing auth state');
           localStorage.removeItem('access_token');
-        })
-        .finally(() => {
+          localStorage.removeItem('current_user');
+          setUser(null);
           setLoading(false);
-        });
-    } else {
-      setLoading(false);
+          return;
+        }
+        
+        // Check if we have a saved user
+        if (savedUser) {
+          try {
+            const parsedUser = JSON.parse(savedUser);
+            console.log('Using saved user from localStorage:', parsedUser);
+            setUser(parsedUser);
+            
+            // Don't auto-redirect on page refresh - let the current page stay
+            // Just update the user state
+          } catch (e) {
+            console.error('Error parsing saved user:', e);
+            // Continue with profile fetch if parsing fails
+          }
+        }
+        
+        // Always verify with backend for the most up-to-date profile
+        console.log('Fetching user profile from backend');
+        const userData = await authService.getProfile();
+        console.log('User profile fetched:', userData);
+        
+        // Update user in state and localStorage
+        setUser(userData);
+        localStorage.setItem('current_user', JSON.stringify(userData));
+        
+        // Special handling for admin users
+        if (userData.email === 'drakanksha@destinpq.com' && !userData.isAdmin) {
+          console.log('Force setting admin for drakanksha@destinpq.com');
+          userData.isAdmin = true;
+          setUser({...userData, isAdmin: true});
+          localStorage.setItem('current_user', JSON.stringify({...userData, isAdmin: true}));
+        }
+      } catch (err) {
+        console.error('Error authenticating user:', err);
+        
+        // Try to use saved user if API fails
+        if (savedUser) {
+          try {
+            const parsedUser = JSON.parse(savedUser);
+            console.log('Using saved user as fallback:', parsedUser);
+            setUser(parsedUser);
+          } catch (e) {
+            console.error('Error parsing saved user as fallback:', e);
+            setUser(null);
+            localStorage.removeItem('current_user');
+          }
+        } else {
+          // Clear everything if no saved user
+          setUser(null);
+          localStorage.removeItem('access_token');
+        }
+      } finally {
+        setLoading(false);
+      }
     }
+    
+    authenticateUser();
   }, [router]);
 
   async function signup(firstName: string, lastName: string, email: string, password: string): Promise<void> {
@@ -212,6 +260,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setUser(userData);
       
+      // Save user to localStorage for persistence
+      localStorage.setItem('current_user', JSON.stringify(userData));
+      
       console.log('Final admin status before redirect:', isAdmin);
       
       // Redirect based on user role
@@ -236,8 +287,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     
     try {
-      // Remove token
+      // Remove token and user data
       localStorage.removeItem('access_token');
+      localStorage.removeItem('current_user');
       setUser(null);
       
       // Redirect to login page

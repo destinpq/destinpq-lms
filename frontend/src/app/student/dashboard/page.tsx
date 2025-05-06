@@ -104,10 +104,28 @@ export default function StudentDashboard() {
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        router.push('/login');
+        // Only redirect if there's no user AND no token
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+          console.log('No user and no token, redirecting to login');
+          router.push('/login');
+        }
       } else if (user.isAdmin) {
-        // Redirect admin users to the admin dashboard
-        router.push('/admin/dashboard');
+        // For admin users, check if this is an intentional navigation or just a refresh
+        const isRefresh = performance.navigation && performance.navigation.type === 1;
+        const isDirectNavigation = document.referrer === '';
+        
+        console.log('Admin user detected in student dashboard');
+        console.log('Is page refresh:', isRefresh);
+        console.log('Is direct navigation:', isDirectNavigation);
+        
+        // Only redirect if this is not a refresh
+        if (!isRefresh && !isDirectNavigation) {
+          console.log('Admin user intentionally navigated here, redirecting to admin dashboard');
+          router.push('/admin/dashboard');
+        } else {
+          console.log('Admin user refreshed student dashboard page, not redirecting');
+        }
       }
     }
   }, [user, loading, router]);
