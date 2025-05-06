@@ -40,7 +40,7 @@ This project is organized as a monorepo with two main directories:
 
 1. Clone the repository:
 ```
-git clone https://github.com/yourusername/destinpq-lms.git
+git clone https://github.com/destinpq/destinpq-lms.git
 cd destinpq-lms
 ```
 
@@ -86,4 +86,4 @@ MIT
 
 ## Contributors
 
-- Pratik Khanapurkar 
+- DestinPQ Support Team 
