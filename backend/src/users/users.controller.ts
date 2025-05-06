@@ -15,76 +15,28 @@ import { UsersService } from './users.service';
 import { User } from '../entities/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-// Mock user profile for development
-const MOCK_USER_PROFILE = {
-  id: 999,
-  email: 'test@example.com',
-  firstName: 'Test',
-  lastName: 'User',
-  isAdmin: false,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString()
-};
-
-const MOCK_ADMIN_PROFILE = {
-  id: 998,
-  email: 'admin@example.com',
-  firstName: 'Admin',
-  lastName: 'User',
-  isAdmin: true,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString()
-};
-
-// Special admin profiles for guaranteed access
-const FIXED_ADMIN_PROFILES = {
-  'drakanksha@destinpq.com': {
-    id: 1000,
-    email: 'drakanksha@destinpq.com',
-    firstName: 'Akanksha',
-    lastName: 'Destin',
-    isAdmin: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  }
-};
-
 @Controller('users')
+@UseGuards(JwtAuthGuard) // Global guard for all user endpoints
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  // Get all users
   @Get()
-  findAll(): Promise<User[]> {
-    return this.usersService.findAll();
+  async findAll(): Promise<User[]> {
+    try {
+      return await this.usersService.findAll();
+    } catch (error: any) {
+      console.error('Error fetching all users:', error);
+      throw new HttpException(
+        error.message || 'Failed to fetch users',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string): Promise<User | null> {
-    return this.usersService.findOne(+id);
-  }
-
-  @Post()
-  create(@Body() createUserDto: Partial<User>): Promise<User> {
-    return this.usersService.create(createUserDto);
-  }
-
-  @Put(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateUserDto: Partial<User>,
-  ): Promise<User | null> {
-    return this.usersService.update(+id, updateUserDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string): Promise<void> {
-    return this.usersService.remove(+id);
-  }
-
-  // Get current user profile
-  @UseGuards(JwtAuthGuard)
+  // Get current user profile - THIS MUST COME BEFORE THE :id ROUTE
   @Get('profile/me')
-  async getUserProfile(@Request() req) {
+  async getUserProfile(@Request() req: any) {
     try {
       console.log('Getting user profile from token:', req.user);
       
@@ -103,39 +55,84 @@ export class UsersController {
       // Return user without password
       const { password, ...result } = user;
       return result;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting user profile:', error);
       throw new HttpException(
         error.message || 'Failed to get user profile', 
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
-  // Get user by ID for admin panel - development version
+  // Get user by ID
   @Get(':id')
-  async getUserById(@Param('id') id: string) {
+  async findOne(@Param('id') id: string): Promise<User> {
     try {
-      if (id === '999') {
-        return MOCK_USER_PROFILE;
-      } else if (id === '998') {
-        return MOCK_ADMIN_PROFILE;
-      } else if (id === '1000') {
-        return FIXED_ADMIN_PROFILES['drakanksha@destinpq.com'];
+      const user = await this.usersService.findOne(+id);
+      
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
+      
+      return user;
+    } catch (error: any) {
+      console.error(`Error fetching user ${id}:`, error);
+      throw new HttpException(
+        error.message || 'Failed to fetch user',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 
-      // Return a generated mock user
-      return {
-        id: parseInt(id),
-        email: `user${id}@example.com`,
-        firstName: `User`,
-        lastName: `${id}`,
-        isAdmin: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-    } catch (error) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+  // Create new user
+  @Post()
+  async create(@Body() createUserDto: Partial<User>): Promise<User> {
+    try {
+      return await this.usersService.create(createUserDto);
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      throw new HttpException(
+        error.message || 'Failed to create user',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // Update user
+  @Put(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto: Partial<User>,
+  ): Promise<User> {
+    try {
+      const updatedUser = await this.usersService.update(+id, updateUserDto);
+      
+      if (!updatedUser) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+      
+      return updatedUser;
+    } catch (error: any) {
+      console.error(`Error updating user ${id}:`, error);
+      throw new HttpException(
+        error.message || 'Failed to update user',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // Delete user
+  @Delete(':id')
+  async remove(@Param('id') id: string): Promise<{ message: string }> {
+    try {
+      await this.usersService.remove(+id);
+      return { message: 'User deleted successfully' };
+    } catch (error: any) {
+      console.error(`Error deleting user ${id}:`, error);
+      throw new HttpException(
+        error.message || 'Failed to delete user',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 } 
