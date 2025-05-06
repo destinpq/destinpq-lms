@@ -1,20 +1,63 @@
-# Node.js dependencies
-node_modules/
-npm-debug.log
-yarn-debug.log
-yarn-error.log
+# Dependencies
+**/node_modules/
+**/.pnp
+**/.pnp.js
+**/.yarn/install-state.gz
+
+# Build outputs
+**/dist/
+**/build/
+**/.next/
+**/out/
+**/.nuxt/
+**/.turbo/
+
+# Testing
+**/coverage/
+**/.nyc_output/
 
 # Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+**/.env
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+# Keep production env for reference
+!**/backend/.env.production
+!**/frontend/.env.production
 
-# Build files
-dist/
-build/
-coverage/
+# Logs
+**/logs/
+**/*.log
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
+**/lerna-debug.log*
+
+# Editor directories and files
+**/.vscode/*
+!**/.vscode/extensions.json
+!**/.vscode/settings.json
+!**/.vscode/tasks.json
+!**/.vscode/launch.json
+**/.idea/
+**/.DS_Store
+**/*.suo
+**/*.ntvs*
+**/*.njsproj
+**/*.sln
+**/*.sw?
+**/*.sublime-workspace
+
+# TypeScript
+**/*.tsbuildinfo
+**/next-env.d.ts
+
+# Misc
+**/temp/
+**/tmp/
+**/.cache/
 
 # IDE files
 .idea/
@@ -25,14 +68,6 @@ coverage/
 # OS files
 .DS_Store
 Thumbs.db
-
-# Logs
-logs
-*.log
-
-# TypeScript
-*.tsbuildinfo
-.tscache/
 
 # Environment and config files
 .env.development
@@ -45,7 +80,6 @@ logs
 *.sublime-workspace
 
 # Cache
-.cache/
 .eslintcache
 .stylelintcache
 
@@ -54,14 +88,7 @@ logs
 *.sqlite3
 *.db
 
-# Temporary files
-tmp/
-temp/
-.temp/
-.tmp/
-
 # Test generated files
-.nyc_output/
 .coverage/
 
 # Dependencies

@@ -1,86 +1,89 @@
-# Psychology Learning Management System
+# DestinPQ Learning Management System
 
-A comprehensive Learning Management System (LMS) designed specifically for psychology courses and workshops. This platform provides features for course management, student enrollment, homework assignments, and interactive workshops.
+A full-stack Learning Management System built with Next.js frontend and NestJS backend.
+
+## Live Demo
+
+- **Frontend**: [https://destinpq-lms-frontend-6860e9083f5a.herokuapp.com/](https://destinpq-lms-frontend-6860e9083f5a.herokuapp.com/)
+- **Backend API**: [https://destinpq-lms-63d26b382b63.herokuapp.com/](https://destinpq-lms-63d26b382b63.herokuapp.com/)
 
 ## Project Structure
 
-The project is divided into two main components:
+This project is organized as a monorepo with two main directories:
 
-### Backend
+- `frontend/`: Next.js application serving the user interface
+- `backend/`: NestJS API handling data and business logic
 
-- Built with NestJS and TypeORM
-- PostgreSQL database for data storage
-- RESTful API for frontend communication
-- Authentication with JWT
-- Entity management for courses, modules, lessons, homework, users, etc.
+## Technology Stack
 
 ### Frontend
+- **Framework**: Next.js 15
+- **UI Library**: React 18
+- **UI Components**: Ant Design
+- **Styling**: Tailwind CSS
+- **Form Handling**: React Hook Form with Zod validation
 
-- Built with Next.js (React) and TypeScript
-- Ant Design component library for UI
-- Context-based state management
-- Responsive design for all devices
-- Role-based access (admin, instructor, student)
+### Backend
+- **Framework**: NestJS
+- **Database**: PostgreSQL
+- **ORM**: TypeORM
+- **Authentication**: JWT with Passport
+- **API Documentation**: Swagger (available at /api)
 
-## Features
+## Getting Started
 
-- **User Management**: Student and instructor accounts, admin dashboard, user profiles
-- **Course Management**: Create and manage courses, modules, and lessons
-- **Content Delivery**: Structured lesson content with rich text support
-- **Homework System**: Create, assign, submit, and grade homework assignments
-- **Workshop Management**: Schedule and manage virtual workshops with Jitsi integration
-- **Progress Tracking**: Monitor student progress through courses
-- **Admin Dashboard**: Comprehensive administration tools
+### Prerequisites
+- Node.js (v18+)
+- PostgreSQL
 
-## Prerequisites
+### Local Development
 
-- Node.js (v16+)
-- PostgreSQL (v13+)
-- npm or yarn
+1. Clone the repository:
+```
+git clone https://github.com/yourusername/destinpq-lms.git
+cd destinpq-lms
+```
 
-## Installation
-
-### Backend Setup
-
-```bash
-cd lms_workshop/backend
+2. Set up the backend:
+```
+cd backend
 npm install
-cp .env.example .env
-# Configure your database connection in .env
+cp .env.example .env  # Configure your environment variables
 npm run start:dev
 ```
 
-### Frontend Setup
-
-```bash
-cd lms_workshop/frontend
+3. Set up the frontend:
+```
+cd ../frontend
 npm install
-cp .env.example .env
-# Configure your API connection in .env
+cp .env.example .env  # Configure your environment variables
 npm run dev
 ```
 
-## Database Migration
+4. Access the application:
+   - Frontend: http://localhost:22000
+   - Backend API: http://localhost:3001/lms
 
-The project includes database export utilities for easy migration:
+## Deployment
 
-```bash
-cd lms_workshop/backend
-./scripts/export-db.sh     # SQL export
-./scripts/export-db.sh -j  # JSON export
+Both frontend and backend are deployed on Heroku:
+
+### Backend
+```
+cd backend
+git push heroku main
 ```
 
-See `lms_workshop/backend/README-DB-EXPORT.md` for more details.
-
-## Documentation
-
-- API documentation is available at `/api/docs` when the backend is running
-- Component documentation is available in README files throughout the project
-
-## Contributors
-
-- Pratik Khanapurkar
+### Frontend
+```
+cd frontend
+git push heroku main
+```
 
 ## License
 
-This project is proprietary software. All rights reserved. 
+MIT
+
+## Contributors
+
+- Pratik Khanapurkar 

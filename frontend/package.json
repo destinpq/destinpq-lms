@@ -5,8 +5,11 @@
   "scripts": {
     "dev": "next dev -p 22000",
     "build": "next build",
-    "start": "next start -p 22000",
+    "start": "next start -p ${PORT:-22000}",
     "lint": "next lint"
+  },
+  "engines": {
+    "node": "18.x"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
