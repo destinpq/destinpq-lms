@@ -36,6 +36,7 @@ import {
 } from '@ant-design/icons';
 import { User } from '@/api/userService';
 import { Course } from '@/api/courseService';
+import moment from 'moment';
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
@@ -47,6 +48,7 @@ interface Workshop {
   instructor: string;
   date: string;
   participants: number;
+  description?: string;
 }
 
 // Workshop and course data will be replaced later
@@ -69,7 +71,11 @@ export default function AdminDashboard() {
   const [courseForm] = Form.useForm();
   const [isWorkshopModalOpen, setIsWorkshopModalOpen] = useState(false);
   const [workshopForm] = Form.useForm();
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [userForm] = Form.useForm();
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [editingWorkshop, setEditingWorkshop] = useState<Workshop | null>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   
   // State for real data
   const [users, setUsers] = useState<User[]>([]);
@@ -522,6 +528,7 @@ export default function AdminDashboard() {
 
   // Create workshop functions
   const handleCreateWorkshop = () => {
+    setEditingWorkshop(null);
     workshopForm.resetFields();
     setIsWorkshopModalOpen(true);
   };
@@ -535,7 +542,6 @@ export default function AdminDashboard() {
     try {
       const values = await workshopForm.validateFields();
       setIsLoading(true);
-      console.log('Creating workshop with values:', values);
       
       // Make direct API call
       const token = localStorage.getItem('access_token');
@@ -543,48 +549,234 @@ export default function AdminDashboard() {
         throw new Error('No authentication token found');
       }
 
-      const workshopData = {
+      const workshopData: {
+        title: string;
+        instructor: string;
+        date: string;
+        description: string;
+        participants?: number;
+      } = {
         title: values.title,
         instructor: values.instructor,
         date: values.date.format('YYYY-MM-DD'),
         description: values.description || '',
-        participants: 0
       };
 
       console.log('Sending workshop data:', workshopData);
       console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops`, {
-        method: 'POST',
+      if (editingWorkshop) {
+        // Update existing workshop
+        console.log('Updating workshop ID:', editingWorkshop.id);
+        
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops/${editingWorkshop.id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(workshopData),
+        });
+
+        console.log('Update workshop response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Update workshop error:', errorText);
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { message: errorText || 'Failed to update workshop' };
+          }
+          throw new Error(errorData.message || `Failed to update workshop with status: ${response.status}`);
+        }
+        
+        message.success('Workshop updated successfully!');
+      } else {
+        // Create new workshop
+        workshopData.participants = 0;
+        
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(workshopData),
+        });
+
+        console.log('Create workshop response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Create workshop error:', errorText);
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { message: errorText || 'Failed to create workshop' };
+          }
+          throw new Error(errorData.message || `Failed to create workshop with status: ${response.status}`);
+        }
+        
+        message.success('Workshop created successfully!');
+      }
+      
+      // Refresh workshops
+      window.location.reload();
+      setIsWorkshopModalOpen(false);
+      workshopForm.resetFields();
+      setEditingWorkshop(null);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save workshop';
+      console.error('Error handling workshop:', errorMessage);
+      message.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Edit user functions
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    userForm.setFieldsValue({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      isAdmin: user.isAdmin
+    });
+    setIsUserModalOpen(true);
+  };
+
+  const handleUserModalCancel = () => {
+    setIsUserModalOpen(false);
+    userForm.resetFields();
+    setEditingUser(null);
+  };
+
+  const handleUserModalSubmit = async () => {
+    try {
+      const values = await userForm.validateFields();
+      setIsLoading(true);
+      console.log('Updating user with values:', values);
+      
+      if (!editingUser) {
+        throw new Error('No user selected for editing');
+      }
+      
+      // Make direct API call
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const userData = {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        isAdmin: values.isAdmin || false
+      };
+
+      console.log('Sending user data:', userData);
+      console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${editingUser.id}`, {
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(workshopData),
+        body: JSON.stringify(userData),
       });
 
-      console.log('Create workshop response status:', response.status);
+      console.log('Update user response status:', response.status);
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Create workshop error:', errorText);
+        console.error('Update user error:', errorText);
         let errorData;
         try {
           errorData = JSON.parse(errorText);
         } catch {
-          errorData = { message: errorText || 'Failed to create workshop' };
+          errorData = { message: errorText || 'Failed to update user' };
         }
-        throw new Error(errorData.message || `Failed to create workshop with status: ${response.status}`);
+        throw new Error(errorData.message || `Failed to update user with status: ${response.status}`);
       }
       
-      message.success('Workshop created successfully!');
-      // Refresh workshops - for now just reload page as we don't have a fetch workshops function
-      window.location.reload();
-      setIsWorkshopModalOpen(false);
-      workshopForm.resetFields();
+      message.success('User updated successfully!');
+      fetchUsers(); // Reload users
+      setIsUserModalOpen(false);
+      userForm.resetFields();
+      setEditingUser(null);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create workshop';
-      console.error('Error creating workshop:', errorMessage);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update user';
+      console.error('Error updating user:', errorMessage);
+      message.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Edit workshop functions
+  const handleEditWorkshop = (workshop: Workshop) => {
+    setEditingWorkshop(workshop);
+    
+    // Parse the date string to a moment object
+    const workshopDate = workshop.date;
+    
+    workshopForm.setFieldsValue({
+      title: workshop.title,
+      instructor: workshop.instructor,
+      date: workshopDate ? moment(workshopDate) : null,
+      description: workshop.description
+    });
+    
+    setIsWorkshopModalOpen(true);
+  };
+
+  // Delete workshop function
+  const handleDeleteWorkshop = async (workshopId: number) => {
+    try {
+      console.log('Deleting workshop with ID:', workshopId);
+      setIsLoading(true);
+      
+      // Make direct API call
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops/${workshopId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('Delete workshop response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Delete workshop error:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText || 'Failed to delete workshop' };
+        }
+        throw new Error(errorData.message || `Failed to delete workshop with status: ${response.status}`);
+      }
+
+      message.success('Workshop deleted successfully!');
+      // Refresh workshops - reload page
+      window.location.reload();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete workshop';
+      console.error('Error deleting workshop:', errorMessage);
       message.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -623,9 +815,7 @@ export default function AdminDashboard() {
           <Button 
             icon={<EditOutlined />} 
             size="small"
-            onClick={() => {
-              message.info('Edit functionality coming soon');
-            }}
+            onClick={() => handleEditUser(record)}
           >
             Edit
           </Button>
@@ -677,10 +867,34 @@ export default function AdminDashboard() {
     {
       title: 'Actions',
       key: 'actions',
-      render: () => (
+      render: (record: Workshop) => (
         <Space>
-          <Button icon={<EditOutlined />} size="small">Edit</Button>
-          <Button icon={<DeleteOutlined />} size="small" danger>Delete</Button>
+          <Button 
+            icon={<EditOutlined />} 
+            size="small" 
+            onClick={() => handleEditWorkshop(record)}
+          >
+            Edit
+          </Button>
+          <Button 
+            icon={<DeleteOutlined />} 
+            size="small" 
+            danger
+            onClick={() => {
+              Modal.confirm({
+                title: 'Delete Workshop',
+                content: `Are you sure you want to delete ${record.title}?`,
+                okText: 'Yes',
+                okType: 'danger',
+                cancelText: 'No',
+                onOk() {
+                  handleDeleteWorkshop(record.id);
+                }
+              });
+            }}
+          >
+            Delete
+          </Button>
         </Space>
       ),
     },
@@ -1120,7 +1334,7 @@ export default function AdminDashboard() {
 
       {/* Workshop Modal */}
       <Modal
-        title="Create New Workshop"
+        title={editingWorkshop ? "Edit Workshop" : "Create New Workshop"}
         open={isWorkshopModalOpen}
         onCancel={handleWorkshopModalCancel}
         footer={[
@@ -1133,7 +1347,7 @@ export default function AdminDashboard() {
             loading={isLoading}
             onClick={() => workshopForm.submit()}
           >
-            Create Workshop
+            {editingWorkshop ? "Update Workshop" : "Create Workshop"}
           </Button>
         ]}
       >
@@ -1171,6 +1385,66 @@ export default function AdminDashboard() {
             label="Description"
           >
             <Input.TextArea rows={4} />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* User Edit Modal */}
+      <Modal
+        title="Edit User"
+        open={isUserModalOpen}
+        onCancel={handleUserModalCancel}
+        footer={[
+          <Button key="cancel" onClick={handleUserModalCancel}>
+            Cancel
+          </Button>,
+          <Button 
+            key="submit" 
+            type="primary" 
+            loading={isLoading}
+            onClick={() => userForm.submit()}
+          >
+            Update User
+          </Button>
+        ]}
+      >
+        <Form
+          form={userForm}
+          layout="vertical"
+          onFinish={handleUserModalSubmit}
+        >
+          <Form.Item
+            name="firstName"
+            label="First Name"
+            rules={[{ required: true, message: 'Please enter the first name' }]}
+          >
+            <Input />
+          </Form.Item>
+          
+          <Form.Item
+            name="lastName"
+            label="Last Name"
+            rules={[{ required: true, message: 'Please enter the last name' }]}
+          >
+            <Input />
+          </Form.Item>
+          
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true, message: 'Please enter the email' },
+              { type: 'email', message: 'Please enter a valid email' }
+            ]}
+          >
+            <Input disabled={true} /> {/* Disable email editing to prevent conflicts */}
+          </Form.Item>
+          
+          <Form.Item
+            name="isAdmin"
+            valuePropName="checked"
+          >
+            <Input type="checkbox" /> Admin privileges
           </Form.Item>
         </Form>
       </Modal>
