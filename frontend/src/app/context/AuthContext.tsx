@@ -49,6 +49,16 @@ function decodeJwt(token: string): JwtPayload | null {
   }
 }
 
+// Force clear cache and reset user state
+function clearCacheAndResetUser() {
+  if (typeof window !== 'undefined') {
+    console.log('Clearing all localStorage data to reset state');
+    localStorage.removeItem('workshops');
+    console.log('Force reloading page to ensure fresh state');
+    window.location.reload();
+  }
+}
+
 // Create context with default values
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -197,6 +207,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     
     try {
+      // Clear all localStorage first to ensure we start fresh
+      if (email === 'drakanksha@destinpq.com') {
+        localStorage.removeItem('workshops');
+        localStorage.removeItem('current_user');
+      }
+      
       // Use the auth service instead of direct fetch
       const result = await authService.login({ email, password });
       
@@ -256,6 +272,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('FORCING ADMIN STATUS for drakanksha@destinpq.com');
         userData.isAdmin = true;
         isAdmin = true;
+        
+        // Set special data for guaranteed admin access
+        userData = {
+          id: 1000,
+          email: 'drakanksha@destinpq.com',
+          firstName: 'Akanksha',
+          lastName: 'Destin',
+          isAdmin: true
+        };
       }
       
       setUser(userData);

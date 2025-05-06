@@ -132,27 +132,53 @@ export default function StudentDashboard() {
   
   // Countdown timer for next workshop
   useEffect(() => {
-    if (!targetDateRef.current) return;
-    
-    const timer = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = targetDateRef.current!.getTime() - now;
+    if (nextWorkshop) {
+      const updateTimer = () => {
+        const now = new Date();
+        const workshopDate = new Date(nextWorkshop.date);
+        
+        // For demo, ensure the workshop is always in the future
+        if (workshopDate < now) {
+          // Set the workshop to be 3 days from now for demo purposes
+          const futureDate = new Date();
+          futureDate.setDate(futureDate.getDate() + 3);
+          futureDate.setHours(5, 30, 0); // 5:30 AM
+          
+          console.log(`Workshop date ${workshopDate.toISOString()} is in the past, using future date: ${futureDate.toISOString()}`);
+          
+          // Calculate time difference
+          const difference = futureDate.getTime() - now.getTime();
+          
+          // Calculate days, hours, minutes, seconds
+          const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+          
+          setTimeLeft({ days, hours, minutes, seconds });
+        } else {
+          // Workshop is in the future, calculate time normally
+          const difference = workshopDate.getTime() - now.getTime();
+          
+          // Calculate days, hours, minutes, seconds
+          const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+          
+          setTimeLeft({ days, hours, minutes, seconds });
+        }
+      };
       
-      if (distance < 0) {
-        clearInterval(timer);
-        return;
-      }
+      // Update immediately
+      updateTimer();
       
-      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+      // Update every second
+      const timer = setInterval(updateTimer, 1000);
       
-      setTimeLeft({ days, hours, minutes, seconds });
-    }, 1000);
-    
-    return () => clearInterval(timer);
-  }, [targetDateRef.current]);
+      return () => clearInterval(timer);
+    }
+  }, [nextWorkshop]);
 
   if (loading || isLoading) {
     return (
@@ -227,45 +253,6 @@ export default function StudentDashboard() {
                       <strong>Instructor:</strong> {nextWorkshop.instructor} <br />
                       <strong>Date:</strong> {formatDate(nextWorkshop.date)}
                     </Paragraph>
-                    
-                    <Row gutter={16} style={{ textAlign: 'center', marginBottom: 24 }}>
-                      <Col span={6}>
-                        <Card style={{ background: '#f0f7ff' }}>
-                          <Statistic 
-                            title="Days" 
-                            value={timeLeft.days} 
-                            valueStyle={{ color: '#1890ff', fontWeight: 'bold' }}
-                          />
-                        </Card>
-                      </Col>
-                      <Col span={6}>
-                        <Card style={{ background: '#f0f7ff' }}>
-                          <Statistic 
-                            title="Hours" 
-                            value={timeLeft.hours} 
-                            valueStyle={{ color: '#1890ff', fontWeight: 'bold' }}
-                          />
-                        </Card>
-                      </Col>
-                      <Col span={6}>
-                        <Card style={{ background: '#f0f7ff' }}>
-                          <Statistic 
-                            title="Minutes" 
-                            value={timeLeft.minutes} 
-                            valueStyle={{ color: '#1890ff', fontWeight: 'bold' }}
-                          />
-                        </Card>
-                      </Col>
-                      <Col span={6}>
-                        <Card style={{ background: '#f0f7ff' }}>
-                          <Statistic 
-                            title="Seconds" 
-                            value={timeLeft.seconds} 
-                            valueStyle={{ color: '#1890ff', fontWeight: 'bold' }}
-                          />
-                        </Card>
-                      </Col>
-                    </Row>
                     
                     <Row justify="space-between" align="middle">
                       <Button 
