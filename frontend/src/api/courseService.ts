@@ -1,6 +1,12 @@
 // Use environment variable for API URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:15001/lms';
 
+// Format token with Bearer prefix - ensure consistency with authService.ts
+function formatToken(token: string): string {
+  if (!token) return '';
+  return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+}
+
 export interface Course {
   id: number;
   title: string;
@@ -21,11 +27,15 @@ export const courseService = {
       throw new Error('No authentication token found');
     }
 
+    // Format token consistently
+    const formattedToken = formatToken(token);
+    console.log('Using token to fetch courses: Token exists');
+
     try {
       const response = await fetch(`${API_URL}/courses`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
       });
@@ -61,11 +71,14 @@ export const courseService = {
       throw new Error('No authentication token found');
     }
 
+    // Format token consistently
+    const formattedToken = formatToken(token);
+
     try {
       const response = await fetch(`${API_URL}/courses`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(courseData),
@@ -102,11 +115,14 @@ export const courseService = {
       throw new Error('No authentication token found');
     }
 
+    // Format token consistently
+    const formattedToken = formatToken(token);
+
     try {
       const response = await fetch(`${API_URL}/courses/${courseId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
       });
@@ -140,11 +156,14 @@ export const courseService = {
       throw new Error('No authentication token found');
     }
 
+    // Format token consistently
+    const formattedToken = formatToken(token);
+
     try {
       const response = await fetch(`${API_URL}/courses/${courseId}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(courseData),

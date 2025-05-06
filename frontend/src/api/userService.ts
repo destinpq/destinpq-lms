@@ -1,6 +1,12 @@
 // Use environment variable for API URL - no need to add /lms to localhost as it's already in the URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:15001/lms';
 
+// Format token with Bearer prefix - ensure consistency with authService.ts
+function formatToken(token: string): string {
+  if (!token) return '';
+  return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+}
+
 export interface User {
   id: number;
   firstName: string;
@@ -20,11 +26,16 @@ export const userService = {
       throw new Error('No authentication token found');
     }
 
+    // Format token consistently
+    const formattedToken = formatToken(token);
+    console.log('Using token to fetch users: Token exists');
+    console.log('API URL:', API_URL);
+
     try {
       const response = await fetch(`${API_URL}/users`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
       });
@@ -60,11 +71,14 @@ export const userService = {
       throw new Error('No authentication token found');
     }
 
+    // Format token consistently
+    const formattedToken = formatToken(token);
+
     try {
       const response = await fetch(`${API_URL}/users`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(userData),
@@ -101,11 +115,14 @@ export const userService = {
       throw new Error('No authentication token found');
     }
 
+    // Format token consistently
+    const formattedToken = formatToken(token);
+
     try {
       const response = await fetch(`${API_URL}/users/${userId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
       });
@@ -139,11 +156,14 @@ export const userService = {
       throw new Error('No authentication token found');
     }
 
+    // Format token consistently
+    const formattedToken = formatToken(token);
+
     try {
       const response = await fetch(`${API_URL}/users/${userId}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(userData),

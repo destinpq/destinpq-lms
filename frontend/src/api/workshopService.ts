@@ -1,6 +1,12 @@
 // Use environment variable for API URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:15001/lms';
 
+// Format token with Bearer prefix - ensure consistency with authService.ts
+function formatToken(token: string): string {
+  if (!token) return '';
+  return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+}
+
 // Calculate future dates for workshops
 const getFutureDate = (daysFromNow: number): string => {
   const date = new Date();
@@ -151,12 +157,16 @@ export const workshopService = {
       throw new Error('No authentication token found');
     }
 
+    // Format token consistently
+    const formattedToken = formatToken(token);
+    console.log('Using token to fetch next workshop: Token exists');
+
     try {
       // Try to fetch from backend first
       const response = await fetch(`${API_URL}/workshops/next`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
       });
@@ -208,12 +218,16 @@ export const workshopService = {
       throw new Error('No authentication token found');
     }
 
+    // Format token consistently
+    const formattedToken = formatToken(token);
+    console.log('Using token to fetch workshop by ID: Token exists');
+
     try {
       // Try API first
       const response = await fetch(`${API_URL}/workshops/${id}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
       });
@@ -256,12 +270,16 @@ export const workshopService = {
       throw new Error('No authentication token found');
     }
 
+    // Format token consistently
+    const formattedToken = formatToken(token);
+    console.log('Using token to fetch all workshops: Token exists');
+
     try {
       // Try API first
       const response = await fetch(`${API_URL}/workshops`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
       });
@@ -290,12 +308,16 @@ export const workshopService = {
       throw new Error('No authentication token found');
     }
 
+    // Format token consistently
+    const formattedToken = formatToken(token);
+    console.log('Using token to create workshop: Token exists');
+
     try {
       // Try API first
       const response = await fetch(`${API_URL}/workshops`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(workshopData),
@@ -349,12 +371,16 @@ export const workshopService = {
       throw new Error('No authentication token found');
     }
 
+    // Format token consistently
+    const formattedToken = formatToken(token);
+    console.log('Using token to update workshop: Token exists');
+
     try {
       // Try API first
       const response = await fetch(`${API_URL}/workshops/${id}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(workshopData),
@@ -414,12 +440,16 @@ export const workshopService = {
       throw new Error('No authentication token found');
     }
 
+    // Format token consistently
+    const formattedToken = formatToken(token);
+    console.log('Using token to delete workshop: Token exists');
+
     try {
       // Try API first
       const response = await fetch(`${API_URL}/workshops/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
       });
