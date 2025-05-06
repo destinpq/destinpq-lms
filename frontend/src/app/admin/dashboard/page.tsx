@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
 import { 
@@ -60,8 +60,9 @@ const DEFAULT_WORKSHOPS: Workshop[] = [
 ];
 
 export default function AdminDashboard() {
-  const { user, loading, signout, setUser, signin } = useAuth();
+  const { user, loading, signout } = useAuth();
   const router = useRouter();
+  const [activeKey, setActiveKey] = useState('dashboard');
   const [selectedMenu, setSelectedMenu] = useState('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newUserForm] = Form.useForm();
@@ -94,57 +95,20 @@ export default function AdminDashboard() {
     }
   }, [user, loading]);
 
-  // Make sure user is authenticated and is an admin
+  // Remove emergency admin login handling in useEffect
   useEffect(() => {
-    console.log('Admin Dashboard Auth Check - First attempt with direct localStorage check');
+    console.log('Admin Dashboard Auth Check');
     
-    // FIRST: Direct localStorage access for emergency fallback
-    try {
-      const tokenFromStorage = localStorage.getItem('access_token');
-      const userDataString = localStorage.getItem('current_user');
-      
-      console.log('Direct localStorage check - token exists:', !!tokenFromStorage);
-      console.log('Direct localStorage check - user data exists:', !!userDataString);
-      
-      if (tokenFromStorage && userDataString) {
-        const userData = JSON.parse(userDataString);
-        if (userData && userData.email === 'drakanksha@destinpq.com') {
-          console.log('EMERGENCY: Found admin user data in localStorage, forcing admin access');
-          // Force set admin user immediately
-          userData.isAdmin = true;
-          setUser(userData);
-          // Update localStorage with forced admin
-          localStorage.setItem('current_user', JSON.stringify(userData));
-          return; // Skip the redirect check
-        }
-      }
-    } catch (error) {
-      console.error('Error accessing localStorage directly:', error);
-    }
-    
-    // SECOND: Check user state - only redirect if explicitly not logged in and retry login
+    // If not logged in or not admin, redirect to login
     if (!loading && !user) {
-      console.log('No user found, attempting emergency admin login');
-      
-      // EMERGENCY: Try to auto-login as admin
-      const emergencyLogin = async () => {
-        try {
-          console.log('Attempting emergency login for admin user');
-          await signin('drakanksha@destinpq.com', 'DestinPQ@24225');
-          // If success, will be redirected by signin function
-        } catch (err) {
-          console.error('Emergency login failed, redirecting to login page:', err);
-          router.push('/login');
-        }
-      };
-      
-      emergencyLogin();
+      console.log('No user found, redirecting to login page');
+      router.push('/login');
     } else if (!loading && user && !user.isAdmin) {
       console.log('User found but not admin, redirecting to student dashboard');
       message.error('You do not have admin privileges');
       router.push('/student/dashboard');
     }
-  }, [user, loading, router, signin, setUser]);
+  }, [user, loading, router]);
 
   // Fetch users from the API
   useEffect(() => {
@@ -174,7 +138,8 @@ export default function AdminDashboard() {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops`, {
+      // Using the valid /sessions/upcoming endpoint from the backend
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions/upcoming`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -186,48 +151,41 @@ export default function AdminDashboard() {
       console.log('Workshops API response status:', response.status);
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Workshops API error:', errorText);
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch {
-          errorData = { message: errorText || 'Failed to fetch workshops' };
-        }
-        throw new Error(errorData.message || `Failed to fetch workshops with status: ${response.status}`);
+        throw new Error(`Failed to fetch workshops with status: ${response.status}`);
       }
 
-      const workshopsData = await response.json();
-      console.log('Workshops fetched successfully from DB:', workshopsData);
+      const sessionsData = await response.json();
+      console.log('Upcoming sessions fetched successfully:', sessionsData);
       
-      // Define interface for workshop data from API
-      interface ApiWorkshop {
+      // Define interface for session data
+      interface SessionData {
         id: number;
         title: string;
         instructor: string;
         date: string;
-        participants?: number;
+        time?: string;
         description?: string;
       }
       
-      // Format data to match expected structure if needed
-      const formattedWorkshops = workshopsData.map((w: ApiWorkshop) => ({
-        id: w.id,
-        title: w.title,
-        instructor: w.instructor,
-        date: w.date,
-        participants: w.participants || 0,
-        description: w.description
+      // Transform sessions data to match workshop structure
+      const formattedWorkshops = sessionsData.map((session: SessionData) => ({
+        id: session.id,
+        title: session.title,
+        instructor: session.instructor,
+        date: session.date,
+        participants: 0, // Default value as this isn't in the API
+        description: session.description || `Workshop session with ${session.instructor}`
       }));
       
-      setWorkshops(formattedWorkshops);
+      setWorkshops(formattedWorkshops.length > 0 ? formattedWorkshops : DEFAULT_WORKSHOPS);
+      
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch workshops';
       console.error('Error fetching workshops:', errorMessage);
       setError(errorMessage);
-      message.error('Failed to load workshops. Please try again.');
       
-      // Use default workshops as last resort fallback
+      // Use default workshops as fallback
+      console.log('Using default workshops data due to API error');
       setWorkshops(DEFAULT_WORKSHOPS);
     } finally {
       setLoadingWorkshops(false);
@@ -944,6 +902,11 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleLogout = () => {
+    console.log('Logging out...');
+    signout();
+  }
+
   const userColumns = [
     {
       title: 'Name',
@@ -1274,7 +1237,7 @@ export default function AdminDashboard() {
               icon: <LogoutOutlined />,
               label: 'Logout',
               danger: true,
-              onClick: signout
+              onClick: handleLogout
             }
           ]}
         />

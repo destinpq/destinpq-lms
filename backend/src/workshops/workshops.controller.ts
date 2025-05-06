@@ -1,155 +1,133 @@
-import { Controller, Get, Param, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
+import { 
+  Controller, 
+  Get, 
+  Post,
+  Put,
+  Delete,
+  Body, 
+  Param, 
+  UseGuards, 
+  HttpException, 
+  HttpStatus 
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { WorkshopsService } from './workshops.service';
+import { Workshop } from '../entities/workshop.entity';
 
-// Mock data for workshops
-const MOCK_WORKSHOPS = {
-  'adv-cognitive-techniques': {
-    id: 'adv-cognitive-techniques',
-    title: 'Advanced Cognitive Techniques',
-    instructor: 'Dr. Sarah Johnson',
-    date: '2023-06-15',
-    time: '15:00 - 17:00',
-    description: 'Learn advanced cognitive techniques for psychology practitioners',
-    meetingId: 'adv-cognitive-techniques',
-    materials: [
-      { id: 1, name: 'Slides.pdf', url: '/materials/slides.pdf' },
-      { id: 2, name: 'Exercise Sheets.pdf', url: '/materials/exercises.pdf' }
-    ]
-  }
-};
-
-// Mock upcoming sessions
-const UPCOMING_SESSIONS = [
-  {
-    id: 1,
-    title: 'Behavioral Therapy Fundamentals',
-    date: '2023-07-01',
-    time: '14:00 - 16:00',
-    instructor: 'Dr. Michael Brown'
-  },
-  {
-    id: 2,
-    title: 'Advanced Cognitive Techniques',
-    date: '2023-07-15',
-    time: '15:00 - 17:00',
-    instructor: 'Dr. Sarah Johnson'
-  }
-];
-
-// Mock pending homework
-const PENDING_HOMEWORK = [
-  {
-    id: 1,
-    title: 'CBT Application Exercise',
-    workshop: 'Cognitive Behavioral Therapy',
-    dueDate: '2023-06-30'
-  },
-  {
-    id: 2,
-    title: 'Mindfulness Practice Log',
-    workshop: 'Mindfulness Techniques',
-    dueDate: '2023-07-10'
-  }
-];
-
-// Mock recent messages
-const RECENT_MESSAGES = [
-  {
-    id: 1,
-    sender: 'Dr. Sarah Johnson',
-    subject: 'Workshop Materials',
-    preview: 'Here are the materials for the upcoming workshop...',
-    date: '2023-06-10'
-  },
-  {
-    id: 2,
-    sender: 'Admin',
-    subject: 'Schedule Update',
-    preview: 'Please note that the next workshop has been rescheduled...',
-    date: '2023-06-08'
-  }
-];
-
-@Controller()
+@Controller('workshops')
 export class WorkshopsController {
-  // Get workshop by ID
-  // @UseGuards(JwtAuthGuard) - Temporarily removed for development
-  @Get('workshops/:id')
-  getWorkshopById(@Param('id') id: string) {
-    console.log(`Fetching workshop with id: ${id}`);
-    
+  constructor(private readonly workshopsService: WorkshopsService) {}
+
+  // Get all workshops
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  async getAllWorkshops() {
     try {
-      // Check if workshop exists in mock data
-      if (MOCK_WORKSHOPS[id]) {
-        return MOCK_WORKSHOPS[id];
-      }
-      
-      // Return default mock workshop if ID not found
-      return {
-        id: id,
-        title: 'Psychology Workshop',
-        instructor: 'Dr. Emily Wilson',
-        date: '2023-07-30',
-        time: '10:00 - 12:00',
-        description: 'A comprehensive workshop on psychology concepts',
-        meetingId: id,
-        materials: []
-      };
+      return await this.workshopsService.findAll();
     } catch (error) {
-      throw new HttpException('Workshop not found', HttpStatus.NOT_FOUND);
+      throw new HttpException('Error fetching workshops', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  
+
   // Get next upcoming workshop
-  // @UseGuards(JwtAuthGuard) - Temporarily removed for development
-  @Get('workshops/next')
-  getNextWorkshop() {
-    console.log('Fetching next workshop');
-    
+  @UseGuards(JwtAuthGuard)
+  @Get('next')
+  async getNextWorkshop() {
     try {
-      // Return first upcoming session as next workshop
-      return UPCOMING_SESSIONS[0];
+      const workshop = await this.workshopsService.findNext();
+      if (!workshop) {
+        throw new HttpException('No upcoming workshops found', HttpStatus.NOT_FOUND);
+      }
+      return workshop;
     } catch (error) {
-      throw new HttpException('No upcoming workshops found', HttpStatus.NOT_FOUND);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException('Error fetching next workshop', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
   
-  // Get all upcoming sessions
-  // @UseGuards(JwtAuthGuard) - Temporarily removed for development
+  // Get upcoming workshops
+  @UseGuards(JwtAuthGuard)
   @Get('sessions/upcoming')
-  getUpcomingSessions() {
-    console.log('Fetching upcoming sessions');
-    
+  async getUpcomingSessions() {
     try {
-      return UPCOMING_SESSIONS;
+      return await this.workshopsService.findUpcoming();
     } catch (error) {
       throw new HttpException('Error fetching upcoming sessions', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  
-  // Get pending homework
-  // @UseGuards(JwtAuthGuard) - Temporarily removed for development
-  @Get('homework/pending')
-  getPendingHomework() {
-    console.log('Fetching pending homework');
-    
+
+  // Get workshop by ID
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  async getWorkshopById(@Param('id') id: string) {
     try {
-      return PENDING_HOMEWORK;
+      const workshop = await this.workshopsService.findOne(+id);
+      if (!workshop) {
+        throw new HttpException('Workshop not found', HttpStatus.NOT_FOUND);
+      }
+      return workshop;
     } catch (error) {
-      throw new HttpException('Error fetching pending homework', HttpStatus.INTERNAL_SERVER_ERROR);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException('Error fetching workshop', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  
-  // Get recent messages
-  // @UseGuards(JwtAuthGuard) - Temporarily removed for development
-  @Get('messages/recent')
-  getRecentMessages() {
-    console.log('Fetching recent messages');
-    
+
+  // Create new workshop
+  @UseGuards(JwtAuthGuard)
+  @Post()
+  async createWorkshop(@Body() workshopData: Partial<Workshop>) {
     try {
-      return RECENT_MESSAGES;
+      return await this.workshopsService.create(workshopData);
     } catch (error) {
-      throw new HttpException('Error fetching recent messages', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException('Error creating workshop', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // Update workshop
+  @UseGuards(JwtAuthGuard)
+  @Put(':id')
+  async updateWorkshop(
+    @Param('id') id: string,
+    @Body() workshopData: Partial<Workshop>
+  ) {
+    try {
+      // Check if workshop exists
+      const workshop = await this.workshopsService.findOne(+id);
+      if (!workshop) {
+        throw new HttpException('Workshop not found', HttpStatus.NOT_FOUND);
+      }
+      
+      return await this.workshopsService.update(+id, workshopData);
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException('Error updating workshop', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // Delete workshop
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async deleteWorkshop(@Param('id') id: string) {
+    try {
+      // Check if workshop exists
+      const workshop = await this.workshopsService.findOne(+id);
+      if (!workshop) {
+        throw new HttpException('Workshop not found', HttpStatus.NOT_FOUND);
+      }
+      
+      await this.workshopsService.remove(+id);
+      return { message: 'Workshop deleted successfully' };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException('Error deleting workshop', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 } 

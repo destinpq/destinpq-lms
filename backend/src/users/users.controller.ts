@@ -81,52 +81,34 @@ export class UsersController {
     return this.usersService.remove(+id);
   }
 
-  // Get current user profile - development version with support for multiple profiles
+  // Get current user profile
   @UseGuards(JwtAuthGuard)
   @Get('profile/me')
   async getUserProfile(@Request() req) {
     try {
       console.log('Getting user profile from token:', req.user);
-      const userEmail = req.user?.email;
       
-      // Check for special admin emails first
-      if (userEmail === 'drakanksha@destinpq.com') {
-        console.log('Returning fixed admin profile for:', userEmail);
-        return FIXED_ADMIN_PROFILES['drakanksha@destinpq.com'];
+      if (!req.user || !req.user.sub) {
+        throw new HttpException('Invalid authentication token', HttpStatus.UNAUTHORIZED);
       }
       
-      // Check for other known users
-      if (userEmail === 'admin@example.com') {
-        console.log('Returning admin profile for:', userEmail);
-        return MOCK_ADMIN_PROFILE;
+      // Get user from database using ID from JWT token
+      const userId = req.user.sub;
+      const user = await this.usersService.findOne(userId);
+      
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
       
-      if (userEmail === 'test@example.com') {
-        console.log('Returning test user profile for:', userEmail);
-        return MOCK_USER_PROFILE;
-      }
-      
-      // For unknown emails, try to find a real user or create a mock one
-      try {
-        const user = await this.usersService.findByEmail(userEmail);
-        if (user) {
-          console.log('Found real user in database:', userEmail);
-          return user;
-        }
-      } catch (err) {
-        console.log('Error finding user in database:', err);
-      }
-      
-      // Fallback to mock profile
-      console.log('Returning mock user profile for unknown email:', userEmail);
-      return {
-        ...MOCK_USER_PROFILE,
-        email: userEmail,
-        firstName: userEmail?.split('@')[0] || 'User',
-      };
+      // Return user without password
+      const { password, ...result } = user;
+      return result;
     } catch (error) {
       console.error('Error getting user profile:', error);
-      throw new HttpException('Failed to get user profile', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        error.message || 'Failed to get user profile', 
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
   }
 
