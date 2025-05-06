@@ -15,47 +15,57 @@ import { Course } from '../entities/course.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('courses')
+@UseGuards(JwtAuthGuard)
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
   // Get all courses
-  @UseGuards(JwtAuthGuard)
   @Get()
   async findAll() {
     try {
       return await this.coursesService.findAll();
-    } catch (error) {
-      throw new HttpException('Error fetching courses', HttpStatus.INTERNAL_SERVER_ERROR);
+    } catch (error: any) {
+      console.error('Error fetching courses:', error);
+      throw new HttpException(
+        error.message || 'Error fetching courses', 
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   // Get course by ID
-  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async findOne(@Param('id') id: string) {
     try {
-      return await this.coursesService.findOne(+id);
-    } catch (error) {
+      const course = await this.coursesService.findOne(+id);
+      return course;
+    } catch (error: any) {
+      console.error(`Error fetching course ${id}:`, error);
       if (error instanceof HttpException) {
         throw error;
       }
-      throw new HttpException('Error fetching course', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        error.message || 'Error fetching course', 
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   // Create new course
-  @UseGuards(JwtAuthGuard)
   @Post()
   async create(@Body() courseData: Partial<Course>) {
     try {
       return await this.coursesService.create(courseData);
-    } catch (error) {
-      throw new HttpException('Error creating course', HttpStatus.INTERNAL_SERVER_ERROR);
+    } catch (error: any) {
+      console.error('Error creating course:', error);
+      throw new HttpException(
+        error.message || 'Error creating course', 
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   // Update course
-  @UseGuards(JwtAuthGuard)
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -63,26 +73,33 @@ export class CoursesController {
   ) {
     try {
       return await this.coursesService.update(+id, courseData);
-    } catch (error) {
+    } catch (error: any) {
+      console.error(`Error updating course ${id}:`, error);
       if (error instanceof HttpException) {
         throw error;
       }
-      throw new HttpException('Error updating course', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        error.message || 'Error updating course', 
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   // Delete course
-  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: string) {
     try {
       await this.coursesService.remove(+id);
       return { message: 'Course deleted successfully' };
-    } catch (error) {
+    } catch (error: any) {
+      console.error(`Error deleting course ${id}:`, error);
       if (error instanceof HttpException) {
         throw error;
       }
-      throw new HttpException('Error deleting course', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        error.message || 'Error deleting course', 
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 } 
