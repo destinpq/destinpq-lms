@@ -50,7 +50,42 @@ const initializeLocalStorage = () => {
 const getWorkshopsFromLocalStorage = (): Workshop[] => {
   initializeLocalStorage();
   try {
-    return JSON.parse(localStorage.getItem('workshops') || '[]');
+    const workshops = JSON.parse(localStorage.getItem('workshops') || '[]');
+    
+    // Fix dates only once when fetched - don't recalculate every time
+    // Use a flag in localStorage to track if dates have been updated
+    const datesUpdated = localStorage.getItem('workshop_dates_updated');
+    
+    if (!datesUpdated) {
+      console.log('First-time workshop date adjustment to ensure future dates');
+      
+      // Update all workshop dates to be in the future if needed
+      const currentYear = new Date().getFullYear();
+      let hasUpdates = false;
+      
+      workshops.forEach(workshop => {
+        const workshopDate = new Date(workshop.date);
+        
+        // If date is in the past, update it to be next year
+        if (workshopDate < new Date()) {
+          const dateParts = workshop.date.split('-');
+          // Update the year to next year
+          workshop.date = `${currentYear + 1}-${dateParts[1]}-${dateParts[2]}`;
+          hasUpdates = true;
+        }
+      });
+      
+      // Only save if we made updates
+      if (hasUpdates) {
+        console.log('Saving updated workshop dates to localStorage');
+        localStorage.setItem('workshops', JSON.stringify(workshops));
+      }
+      
+      // Set flag to prevent recurring updates
+      localStorage.setItem('workshop_dates_updated', 'true');
+    }
+    
+    return workshops;
   } catch (error) {
     console.error('Error parsing workshops from localStorage:', error);
     return DEFAULT_WORKSHOPS;

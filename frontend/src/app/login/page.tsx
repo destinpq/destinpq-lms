@@ -9,12 +9,71 @@ import { MailOutlined, LockOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
+// Extend Window interface for our custom property
+declare global {
+  interface Window {
+    __authCleared?: boolean;
+  }
+}
+
+// Immediately clear auth data with script to ensure it runs before React hydrates
+if (typeof window !== 'undefined') {
+  // Execute this as soon as the file is loaded, before the component renders
+  console.log('PRE-RENDER: Force clearing all authentication data');
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('current_user');
+  
+  // Set a flag to indicate we've already cleared on this page load
+  window.__authCleared = true;
+}
+
 export default function Login() {
   const router = useRouter();
   const { signin, loading, user } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
+
+  // Ensure all authentication data is cleared when the login page loads
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log('Login page loaded, checking for existing auth data');
+      
+      // Get URL parameters without using useSearchParams
+      const urlParams = new URLSearchParams(window.location.search);
+      const forceClear = urlParams.get('forceClear') === 'true';
+      const timestamp = urlParams.get('t');
+      
+      // Check for force clear parameter
+      if (forceClear) {
+        console.log('Force clear parameter detected, aggressively clearing all data');
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Also clear cookies
+        document.cookie.split(";").forEach(function(c) {
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+      }
+      
+      // Always clear these critical items when the login page loads
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('current_user');
+      
+      // Force a refresh if needed - this will help clear stale browser cache
+      if (timestamp && (Date.now() - parseInt(timestamp)) > 5000) {
+        // If the timestamp is more than 5 seconds old, refresh to clear any potential cache
+        window.location.reload();
+      }
+      
+      // If we still have a user in context after clearing storage, force a full page reload
+      if (user) {
+        console.log('User still in context after clearing storage, forcing hard reload');
+        const randomParam = Math.random().toString(36).substring(7);
+        window.location.href = `/login?forceClear=true&cache=${randomParam}`;
+      }
+    }
+  }, [user]);
 
   // Check if user is already logged in - let AuthContext handle the redirection
   useEffect(() => {
@@ -50,9 +109,10 @@ export default function Login() {
       await signin(email, password);
       
       // No need for manual redirect here - AuthContext will handle it
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       console.error('Login error:', error);
-      setError(error?.message || 'Failed to login. Please check your credentials.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to login. Please check your credentials.';
+      setError(errorMessage);
       setIsSubmitting(false);
     }
   };

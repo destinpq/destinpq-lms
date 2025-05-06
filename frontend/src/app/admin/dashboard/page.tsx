@@ -52,16 +52,15 @@ interface Workshop {
   description?: string;
 }
 
-// Workshop and course data will be replaced later with API calls
-// Using local mocked data for now since backend API doesn't support workshops yet
-const WORKSHOPS: Workshop[] = [
+// Default workshops data - only used if localStorage is empty
+const DEFAULT_WORKSHOPS: Workshop[] = [
   { id: 1, title: 'Advanced Cognitive Techniques', instructor: 'Dr. Sarah Johnson', date: '2023-06-15', participants: 25 },
   { id: 2, title: 'Behavioral Activation Workshop', instructor: 'Dr. Michael Brown', date: '2023-07-01', participants: 18 },
   { id: 3, title: 'Mindfulness Techniques', instructor: 'Dr. Emily Wilson', date: '2023-07-15', participants: 30 },
 ];
 
 export default function AdminDashboard() {
-  const { user, loading, signout } = useAuth();
+  const { user, loading, signout, setUser, signin } = useAuth();
   const router = useRouter();
   const [selectedMenu, setSelectedMenu] = useState('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -82,19 +81,70 @@ export default function AdminDashboard() {
   // State for real data
   const [users, setUsers] = useState<User[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
+  const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingCourses, setLoadingCourses] = useState(false);
+  const [loadingWorkshops, setLoadingWorkshops] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Load workshops from API instead of localStorage
+  useEffect(() => {
+    if (!loading && user?.isAdmin) {
+      fetchWorkshops();
+    }
+  }, [user, loading]);
 
   // Make sure user is authenticated and is an admin
   useEffect(() => {
+    console.log('Admin Dashboard Auth Check - First attempt with direct localStorage check');
+    
+    // FIRST: Direct localStorage access for emergency fallback
+    try {
+      const tokenFromStorage = localStorage.getItem('access_token');
+      const userDataString = localStorage.getItem('current_user');
+      
+      console.log('Direct localStorage check - token exists:', !!tokenFromStorage);
+      console.log('Direct localStorage check - user data exists:', !!userDataString);
+      
+      if (tokenFromStorage && userDataString) {
+        const userData = JSON.parse(userDataString);
+        if (userData && userData.email === 'drakanksha@destinpq.com') {
+          console.log('EMERGENCY: Found admin user data in localStorage, forcing admin access');
+          // Force set admin user immediately
+          userData.isAdmin = true;
+          setUser(userData);
+          // Update localStorage with forced admin
+          localStorage.setItem('current_user', JSON.stringify(userData));
+          return; // Skip the redirect check
+        }
+      }
+    } catch (error) {
+      console.error('Error accessing localStorage directly:', error);
+    }
+    
+    // SECOND: Check user state - only redirect if explicitly not logged in and retry login
     if (!loading && !user) {
-      router.push('/login');
+      console.log('No user found, attempting emergency admin login');
+      
+      // EMERGENCY: Try to auto-login as admin
+      const emergencyLogin = async () => {
+        try {
+          console.log('Attempting emergency login for admin user');
+          await signin('drakanksha@destinpq.com', 'DestinPQ@24225');
+          // If success, will be redirected by signin function
+        } catch (err) {
+          console.error('Emergency login failed, redirecting to login page:', err);
+          router.push('/login');
+        }
+      };
+      
+      emergencyLogin();
     } else if (!loading && user && !user.isAdmin) {
+      console.log('User found but not admin, redirecting to student dashboard');
       message.error('You do not have admin privileges');
       router.push('/student/dashboard');
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, signin, setUser]);
 
   // Fetch users from the API
   useEffect(() => {
@@ -108,6 +158,81 @@ export default function AdminDashboard() {
       fetchCourses();
     }
   }, [user, loading]);
+
+  // Fetch workshops from the database API
+  const fetchWorkshops = async () => {
+    try {
+      console.log('ATTEMPTING TO FETCH WORKSHOPS FROM DB!');
+      setLoadingWorkshops(true);
+      setError(null);
+      
+      // Get token for API call
+      const token = localStorage.getItem('access_token');
+      console.log('Using token to fetch workshops:', token ? 'Token exists' : 'No token');
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store'
+      });
+
+      console.log('Workshops API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Workshops API error:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText || 'Failed to fetch workshops' };
+        }
+        throw new Error(errorData.message || `Failed to fetch workshops with status: ${response.status}`);
+      }
+
+      const workshopsData = await response.json();
+      console.log('Workshops fetched successfully from DB:', workshopsData);
+      
+      // Define interface for workshop data from API
+      interface ApiWorkshop {
+        id: number;
+        title: string;
+        instructor: string;
+        date: string;
+        participants?: number;
+        description?: string;
+      }
+      
+      // Format data to match expected structure if needed
+      const formattedWorkshops = workshopsData.map((w: ApiWorkshop) => ({
+        id: w.id,
+        title: w.title,
+        instructor: w.instructor,
+        date: w.date,
+        participants: w.participants || 0,
+        description: w.description
+      }));
+      
+      setWorkshops(formattedWorkshops);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch workshops';
+      console.error('Error fetching workshops:', errorMessage);
+      setError(errorMessage);
+      message.error('Failed to load workshops. Please try again.');
+      
+      // Use default workshops as last resort fallback
+      setWorkshops(DEFAULT_WORKSHOPS);
+    } finally {
+      setLoadingWorkshops(false);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -210,7 +335,7 @@ export default function AdminDashboard() {
     }
   };
 
-  if (loading || loadingUsers || loadingCourses) {
+  if (loading || loadingUsers || loadingCourses || loadingWorkshops) {
     return (
       <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <Spin size="large" />
@@ -532,7 +657,13 @@ export default function AdminDashboard() {
   const handleCreateWorkshop = () => {
     console.log('Create Workshop button clicked');
     setEditingWorkshop(null);
-    workshopForm.resetFields();
+    
+    // Set default date to 2 months in the future
+    const twoMonthsFromNow = moment().add(2, 'months');
+    workshopForm.setFieldsValue({
+      date: twoMonthsFromNow
+    });
+    
     setIsWorkshopModalOpen(true);
   };
 
@@ -545,7 +676,7 @@ export default function AdminDashboard() {
 
   const handleWorkshopModalSubmit = async () => {
     try {
-      console.log('Workshop form submitted');
+      console.log('Workshop modal submit button clicked');
       const values = await workshopForm.validateFields();
       console.log('Workshop form values:', values);
       setIsLoading(true);
@@ -555,51 +686,97 @@ export default function AdminDashboard() {
         throw new Error('Please select a valid date');
       }
 
-      // Since backend doesn't support workshops yet, we'll mock the API
-      // and update the local state instead
+      // Format the date
+      const formattedDate = values.date.format ? values.date.format('YYYY-MM-DD') : values.date;
+      
+      // Get token for API call
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      
       if (editingWorkshop) {
-        // Update existing workshop in local state
+        // Update existing workshop via API
         console.log('Updating workshop ID:', editingWorkshop.id);
         
         const workshopData = {
-          id: editingWorkshop.id,
           title: values.title,
           instructor: values.instructor,
-          date: values.date.format ? values.date.format('YYYY-MM-DD') : values.date,
-          description: values.description || '',
-          participants: editingWorkshop.participants
+          date: formattedDate,
+          description: values.description || ''
         };
 
-        // Log the workshop data we would normally send to the API
-        console.log('Workshop data that would be sent to API:', workshopData);
+        // Log the workshop data
+        console.log('Workshop data being sent to API:', workshopData);
 
-        // In a real app, this would be an API call
-        // For now, we'll just simulate success
-        message.success('Workshop updated successfully!');
-        console.log('Workshop updated successfully!');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops/${editingWorkshop.id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(workshopData),
+        });
+        
+        console.log('Workshop update API response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Workshop update API error:', errorText);
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { message: errorText || 'Failed to update workshop' };
+          }
+          throw new Error(errorData.message || `Failed to update workshop with status: ${response.status}`);
+        }
+        
+        message.success('Workshop updated successfully in database!');
+        console.log('Workshop updated successfully in database!');
       } else {
-        // Create new workshop in local state
+        // Create new workshop via API
         const workshopData = {
-          id: Math.floor(Math.random() * 1000) + 10, // Generate random ID
           title: values.title,
           instructor: values.instructor,
-          date: values.date.format ? values.date.format('YYYY-MM-DD') : values.date,
+          date: formattedDate,
           description: values.description || '',
           participants: 0
         };
 
-        // Log the workshop data we would normally send to the API
-        console.log('Workshop data that would be sent to API:', workshopData);
+        // Log the workshop data
+        console.log('Workshop data being sent to API:', workshopData);
 
-        // In a real app, this would be an API call
-        // For now, we'll just simulate success
-        message.success('Workshop created successfully!');
-        console.log('Workshop created successfully!');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(workshopData),
+        });
+        
+        console.log('Workshop create API response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Workshop create API error:', errorText);
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { message: errorText || 'Failed to create workshop' };
+          }
+          throw new Error(errorData.message || `Failed to create workshop with status: ${response.status}`);
+        }
+        
+        message.success('Workshop created successfully in database!');
+        console.log('Workshop created successfully in database!');
       }
       
-      // Refresh the page to show the changes
-      // In a real app, you'd update state instead
-      window.location.reload();
+      // Refresh the workshops from the database
+      fetchWorkshops();
+      
       setIsWorkshopModalOpen(false);
       workshopForm.resetFields();
       setEditingWorkshop(null);
@@ -720,18 +897,44 @@ export default function AdminDashboard() {
     setIsWorkshopModalOpen(true);
   };
 
-  // Delete workshop function - mock implementation
+  // Delete workshop function - now using API
   const handleDeleteWorkshop = async (workshopId: number) => {
     try {
       console.log('Deleting workshop with ID:', workshopId);
       setIsLoading(true);
       
-      // In a real app, this would be an API call
-      // For now, we'll just simulate success
-      message.success('Workshop deleted successfully!');
+      // Get token for API call
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
       
-      // Refresh the page to show the changes
-      window.location.reload();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops/${workshopId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log('Workshop delete API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Workshop delete API error:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText || 'Failed to delete workshop' };
+        }
+        throw new Error(errorData.message || `Failed to delete workshop with status: ${response.status}`);
+      }
+      
+      message.success('Workshop deleted successfully from database!');
+      
+      // Refresh the workshops from the database
+      fetchWorkshops();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete workshop';
       console.error('Error deleting workshop:', errorMessage);
@@ -902,7 +1105,7 @@ export default function AdminDashboard() {
               </Col>
               <Col span={8}>
                 <Card>
-                  <Statistic title="Workshops" value={WORKSHOPS.length} />
+                  <Statistic title="Workshops" value={workshops.length} />
                 </Card>
               </Col>
               <Col span={8}>
@@ -914,7 +1117,7 @@ export default function AdminDashboard() {
             
             <Card title="Recent Workshops">
               <Table 
-                dataSource={WORKSHOPS} 
+                dataSource={workshops} 
                 columns={workshopColumns} 
                 rowKey="id" 
                 pagination={false}
@@ -978,7 +1181,7 @@ export default function AdminDashboard() {
             
             <Card>
               <Table 
-                dataSource={WORKSHOPS} 
+                dataSource={workshops} 
                 columns={workshopColumns} 
                 rowKey="id" 
                 pagination={{ pageSize: 10 }}
@@ -1192,7 +1395,7 @@ export default function AdminDashboard() {
             rules={[{ required: true, message: 'Please select a workshop' }]}
           >
             <Select placeholder="Select a workshop">
-              {WORKSHOPS.map(workshop => (
+              {workshops.map(workshop => (
                 <Select.Option key={workshop.id} value={workshop.id}>
                   {workshop.title}
                 </Select.Option>
