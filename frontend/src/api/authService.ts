@@ -1,13 +1,13 @@
 // Use environment variable for API URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:15001/lms';
 
-// Format token with Bearer prefix
+// Format token with Bearer prefix - THIS IS CRITICAL FOR ALL API CALLS
 function formatToken(token: string): string {
   if (!token) return '';
   return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
 }
 
-// Remove Bearer prefix if present
+// Remove Bearer prefix if present - ONLY USED FOR STORAGE
 function stripBearerPrefix(token: string): string {
   if (!token) return '';
   return token.startsWith('Bearer ') ? token.substring(7) : token;
@@ -85,7 +85,7 @@ export const authService = {
     const data = await response.json();
     console.log('Login successful, data:', data);
     
-    // Ensure token is properly formatted
+    // Ensure token is properly formatted for storage (NO Bearer prefix)
     if (data.access_token) {
       data.access_token = stripBearerPrefix(data.access_token);
     }
@@ -121,7 +121,7 @@ export const authService = {
     const responseData = await response.json();
     console.log('Registration successful, data:', responseData);
     
-    // Ensure token is properly formatted
+    // Ensure token is properly formatted for storage (NO Bearer prefix)
     if (responseData.access_token) {
       responseData.access_token = stripBearerPrefix(responseData.access_token);
     }
@@ -137,8 +137,9 @@ export const authService = {
       throw new Error('No authentication token found');
     }
     
-    // Format token if needed
+    // Format token with Bearer prefix for API call
     token = formatToken(token);
+    console.log('Using formatted token for profile request with Bearer prefix');
 
     const response = await fetch(`${API_URL}/users/profile/me`, {
       method: 'GET',

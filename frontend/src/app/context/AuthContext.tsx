@@ -29,12 +29,15 @@ export interface AuthContextType {
   signin: (email: string, password: string) => Promise<void>;
   signout: () => Promise<void>;
   setUser: (user: User | null) => void;
+  getToken: () => string | null;
 }
 
 // Function to decode JWT token
 function decodeJwt(token: string): JwtPayload | null {
   try {
-    const base64Url = token.split('.')[1];
+    // Make sure to strip Bearer prefix if present
+    const tokenWithoutBearer = token.startsWith('Bearer ') ? token.substring(7) : token;
+    const base64Url = tokenWithoutBearer.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const jsonPayload = decodeURIComponent(
       atob(base64)
@@ -66,13 +69,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
+  // Function to get token with consistent format
+  const getToken = (): string | null => {
+    const token = localStorage.getItem('access_token');
+    if (!token) return null;
+    return token;
+  };
+  
   // Check for authentication token and load user on initial mount
   useEffect(() => {
     // Only run on client-side
     if (typeof window === 'undefined') return;
     
     async function authenticateUser() {
-      const token = localStorage.getItem('access_token');
+      const token = getToken();
       const userData = localStorage.getItem('current_user');
       
       console.log('Auth context initialized with token:', token ? 'exists' : 'none');
@@ -147,6 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('No authentication token received');
       }
       
+      // Store the raw token without Bearer prefix
       localStorage.setItem('access_token', response.access_token);
       
       let userData = response.user;
@@ -205,6 +216,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('No authentication token received');
       }
       
+      // Store the token without Bearer prefix
       localStorage.setItem('access_token', response.access_token);
       
       let userData = response.user;
@@ -281,7 +293,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, signup, signin, signout, setUser }}>
+    <AuthContext.Provider value={{ user, loading, error, signup, signin, signout, setUser, getToken }}>
       {children}
     </AuthContext.Provider>
   );

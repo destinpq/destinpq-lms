@@ -33,7 +33,8 @@ import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  VideoCameraOutlined
+  VideoCameraOutlined,
+  BugOutlined
 } from '@ant-design/icons';
 import { User } from '@/api/userService';
 import { Course } from '@/api/courseService';
@@ -59,10 +60,217 @@ const DEFAULT_WORKSHOPS: Workshop[] = [
   { id: 3, title: 'Mindfulness Techniques', instructor: 'Dr. Emily Wilson', date: '2023-07-15', participants: 30 },
 ];
 
+// Token Debugger Component - for troubleshooting auth issues
+const TokenDebugger = () => {
+  const [tokenInfo, setTokenInfo] = useState<{
+    token: string | null;
+    tokenExists: boolean;
+    tokenFirstChars: string;
+    tokenLength: number;
+    tokenDecoded: Record<string, any> | null;
+  }>({
+    token: null,
+    tokenExists: false,
+    tokenFirstChars: '',
+    tokenLength: 0,
+    tokenDecoded: null
+  });
+
+  const [showToken, setShowToken] = useState(false);
+
+  useEffect(() => {
+    try {
+      // Get the token
+      const token = localStorage.getItem('access_token');
+      const tokenExists = !!token;
+      const tokenFirstChars = token ? token.substring(0, 15) + '...' : '';
+      const tokenLength = token ? token.length : 0;
+      
+      // Try to decode JWT
+      let tokenDecoded = null;
+      if (token) {
+        try {
+          const base64Url = token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(
+            atob(base64)
+              .split('')
+              .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+              .join('')
+          );
+          tokenDecoded = JSON.parse(jsonPayload);
+        } catch (e) {
+          console.error('Error decoding token:', e);
+          tokenDecoded = { error: 'Invalid JWT format' };
+        }
+      }
+      
+      setTokenInfo({
+        token,
+        tokenExists,
+        tokenFirstChars,
+        tokenLength,
+        tokenDecoded
+      });
+    } catch (error) {
+      console.error('Error in token debugger:', error);
+    }
+  }, []);
+
+  const refreshToken = () => {
+    try {
+      // Get the token
+      const token = localStorage.getItem('access_token');
+      const tokenExists = !!token;
+      const tokenFirstChars = token ? token.substring(0, 15) + '...' : '';
+      const tokenLength = token ? token.length : 0;
+      
+      // Try to decode JWT
+      let tokenDecoded = null;
+      if (token) {
+        try {
+          const base64Url = token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(
+            atob(base64)
+              .split('')
+              .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+              .join('')
+          );
+          tokenDecoded = JSON.parse(jsonPayload);
+        } catch (e) {
+          console.error('Error decoding token:', e);
+          tokenDecoded = { error: 'Invalid JWT format' };
+        }
+      }
+      
+      setTokenInfo({
+        token,
+        tokenExists,
+        tokenFirstChars,
+        tokenLength,
+        tokenDecoded
+      });
+      
+      message.success('Token information refreshed');
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      message.error('Error refreshing token information');
+    }
+  };
+
+  const formatTokenForAPI = (token: string | null): string => {
+    if (!token) return '';
+    return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+  };
+
+  const fixToken = () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        message.error('No token to fix');
+        return;
+      }
+      
+      // Make sure token has no Bearer prefix in storage
+      const cleanToken = token.startsWith('Bearer ') ? token.substring(7) : token;
+      localStorage.setItem('access_token', cleanToken);
+      
+      message.success('Token format fixed in localStorage');
+      refreshToken();
+    } catch (error) {
+      console.error('Error fixing token:', error);
+      message.error('Error fixing token format');
+    }
+  };
+
+  return (
+    <Card title="Authentication Debugger" style={{ marginBottom: 16 }}>
+      <Space direction="vertical" style={{ width: '100%' }}>
+        <div>
+          <Text strong>Token Status:</Text>{' '}
+          {tokenInfo.tokenExists ? (
+            <Text type="success">Found in localStorage</Text>
+          ) : (
+            <Text type="danger">Not found in localStorage</Text>
+          )}
+        </div>
+        
+        {tokenInfo.tokenExists && (
+          <>
+            <div>
+              <Text strong>Token Length:</Text> {tokenInfo.tokenLength} characters
+            </div>
+            
+            <div>
+              <Text strong>Token Format:</Text>{' '}
+              {tokenInfo.token?.startsWith('Bearer ') ? (
+                <Text type="warning">Stored with Bearer prefix (should be fixed)</Text>
+              ) : (
+                <Text type="success">Correct format (no Bearer prefix in storage)</Text>
+              )}
+            </div>
+            
+            <div>
+              <Text strong>Token Preview:</Text>{' '}
+              {showToken ? tokenInfo.token : tokenInfo.tokenFirstChars}{' '}
+              <Button 
+                size="small" 
+                onClick={() => setShowToken(!showToken)}
+              >
+                {showToken ? 'Hide' : 'Show Full'}
+              </Button>
+            </div>
+            
+            {tokenInfo.tokenDecoded && (
+              <div>
+                <Text strong>Decoded Token:</Text>
+                <pre style={{ 
+                  background: '#f6f6f6', 
+                  padding: 8, 
+                  borderRadius: 4,
+                  maxHeight: 200,
+                  overflow: 'auto'
+                }}>
+                  {JSON.stringify(tokenInfo.tokenDecoded, null, 2)}
+                </pre>
+              </div>
+            )}
+            
+            <div>
+              <Text strong>API Format:</Text>{' '}
+              <code>Authorization: {formatTokenForAPI(tokenInfo.token)}</code>
+            </div>
+          </>
+        )}
+        
+        <Space>
+          <Button 
+            type="primary" 
+            icon={<BugOutlined />} 
+            onClick={refreshToken}
+          >
+            Refresh Token Info
+          </Button>
+          
+          {tokenInfo.token?.startsWith('Bearer ') && (
+            <Button 
+              type="primary" 
+              danger 
+              onClick={fixToken}
+            >
+              Fix Token Format
+            </Button>
+          )}
+        </Space>
+      </Space>
+    </Card>
+  );
+};
+
 export default function AdminDashboard() {
   const { user, loading, signout } = useAuth();
   const router = useRouter();
-  const [activeKey, setActiveKey] = useState('dashboard');
   const [selectedMenu, setSelectedMenu] = useState('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newUserForm] = Form.useForm();
@@ -1059,6 +1267,9 @@ export default function AdminDashboard() {
         return (
           <>
             <Title level={2}>Admin Dashboard</Title>
+            
+            {/* Add TokenDebugger at the top of the dashboard */}
+            <TokenDebugger />
             
             <Row gutter={16} style={{ marginBottom: '24px' }}>
               <Col span={8}>
