@@ -34,20 +34,13 @@ import {
   DeleteOutlined,
   VideoCameraOutlined
 } from '@ant-design/icons';
+import { User } from '@/api/userService';
+import { Course } from '@/api/courseService';
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
 
 // Define interfaces for type safety
-interface User {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  isAdmin: boolean;
-  createdAt: string;
-}
-
 interface Workshop {
   id: number;
   title: string;
@@ -56,13 +49,7 @@ interface Workshop {
   participants: number;
 }
 
-// Mock data for demonstration
-const USERS: User[] = [
-  { id: 1, firstName: 'Admin', lastName: 'User', email: 'admin@example.com', isAdmin: true, createdAt: '2023-01-01' },
-  { id: 2, firstName: 'Test', lastName: 'User', email: 'test@example.com', isAdmin: false, createdAt: '2023-01-02' },
-  { id: 3, firstName: 'John', lastName: 'Doe', email: 'john@example.com', isAdmin: false, createdAt: '2023-01-03' },
-];
-
+// Workshop and course data will be replaced later
 const WORKSHOPS: Workshop[] = [
   { id: 1, title: 'Advanced Cognitive Techniques', instructor: 'Dr. Sarah Johnson', date: '2023-06-15', participants: 25 },
   { id: 2, title: 'Behavioral Activation Workshop', instructor: 'Dr. Michael Brown', date: '2023-07-01', participants: 18 },
@@ -78,6 +65,16 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
   const [zoomForm] = Form.useForm();
+  const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
+  const [courseForm] = Form.useForm();
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  
+  // State for real data
+  const [users, setUsers] = useState<User[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [loadingCourses, setLoadingCourses] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Make sure user is authenticated and is an admin
   useEffect(() => {
@@ -89,7 +86,121 @@ export default function AdminDashboard() {
     }
   }, [user, loading, router]);
 
-  if (loading) {
+  // Fetch users from the API
+  useEffect(() => {
+    console.log('Dashboard useEffect triggered');
+    console.log('User state:', user?.isAdmin ? 'Admin' : 'Not admin or not logged in');
+    console.log('Loading state:', loading ? 'Loading' : 'Not loading');
+    
+    if (!loading && user?.isAdmin) {
+      console.log('User is admin, fetching data...');
+      fetchUsers();
+      fetchCourses();
+    }
+  }, [user, loading]);
+
+  const fetchUsers = async () => {
+    try {
+      console.log('ATTEMPTING TO FETCH USERS NOW!');
+      setLoadingUsers(true);
+      setError(null);
+      
+      // Force refresh - make API call regardless of cache
+      const token = localStorage.getItem('access_token');
+      console.log('Using token to fetch users:', token ? 'Token exists' : 'No token');
+      console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store'
+      });
+
+      console.log('Users API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Users API error:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText || 'Failed to fetch users' };
+        }
+        throw new Error(errorData.message || `Failed to fetch users with status: ${response.status}`);
+      }
+
+      const users = await response.json();
+      console.log('Users fetched successfully:', users);
+      setUsers(users);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch users';
+      console.error('Error fetching users:', errorMessage);
+      setError(errorMessage);
+      message.error('Failed to load users. Please try again.');
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const fetchCourses = async () => {
+    try {
+      console.log('ATTEMPTING TO FETCH COURSES NOW!');
+      setLoadingCourses(true);
+      setError(null);
+      
+      // Force direct API call
+      const token = localStorage.getItem('access_token');
+      console.log('Using token to fetch courses:', token ? 'Token exists' : 'No token');
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/courses`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store'
+      });
+
+      console.log('Courses API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Courses API error:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText || 'Failed to fetch courses' };
+        }
+        throw new Error(errorData.message || `Failed to fetch courses with status: ${response.status}`);
+      }
+
+      const courses = await response.json();
+      console.log('Courses fetched successfully:', courses);
+      setCourses(courses);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch courses';
+      console.error('Error fetching courses:', errorMessage);
+      setError(errorMessage);
+      message.error('Failed to load courses. Please try again.');
+    } finally {
+      setLoadingCourses(false);
+    }
+  };
+
+  if (loading || loadingUsers || loadingCourses) {
     return (
       <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <Spin size="large" />
@@ -114,16 +225,109 @@ export default function AdminDashboard() {
     newUserForm.resetFields();
   };
 
-  const handleModalSubmit = () => {
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+  const handleModalSubmit = async () => {
+    try {
+      const values = await newUserForm.validateFields();
+      setIsLoading(true);
+      console.log('Creating user with values:', values);
+      
+      // Make direct API call
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const userData = {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        password: values.password,
+        isAdmin: values.isAdmin || false
+      };
+
+      console.log('Sending user data:', userData);
+      console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      console.log('Create user response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Create user error:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText || 'Failed to create user' };
+        }
+        throw new Error(errorData.message || `Failed to create user with status: ${response.status}`);
+      }
+      
       message.success('User created successfully!');
-      setIsLoading(false);
+      fetchUsers(); // Reload users
       setIsModalOpen(false);
       newUserForm.resetFields();
-    }, 1000);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create user';
+      console.error('Error creating user:', errorMessage);
+      message.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId: number) => {
+    try {
+      console.log('Deleting user with ID:', userId);
+      setIsLoading(true);
+      
+      // Make direct API call
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('Delete user response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Delete user error:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText || 'Failed to delete user' };
+        }
+        throw new Error(errorData.message || `Failed to delete user with status: ${response.status}`);
+      }
+
+      message.success('User deleted successfully!');
+      fetchUsers(); // Reload users
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete user';
+      console.error('Error deleting user:', errorMessage);
+      message.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCreateZoomMeeting = () => {
@@ -147,12 +351,178 @@ export default function AdminDashboard() {
     }, 1000);
   };
 
+  const handleCreateCourse = () => {
+    setEditingCourse(null);
+    courseForm.resetFields();
+    setIsCourseModalOpen(true);
+  };
+
+  const handleEditCourse = (course: Course) => {
+    setEditingCourse(course);
+    courseForm.setFieldsValue(course);
+    setIsCourseModalOpen(true);
+  };
+
+  const handleDeleteCourse = (course: Course) => {
+    Modal.confirm({
+      title: 'Are you sure you want to delete this course?',
+      content: `${course.title} will be permanently removed.`,
+      okText: 'Yes, Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          console.log('Deleting course with ID:', course.id);
+          setIsLoading(true);
+          
+          // Make direct API call
+          const token = localStorage.getItem('access_token');
+          if (!token) {
+            throw new Error('No authentication token found');
+          }
+
+          console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
+          
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/courses/${course.id}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          console.log('Delete course response status:', response.status);
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Delete course error:', errorText);
+            let errorData;
+            try {
+              errorData = JSON.parse(errorText);
+            } catch {
+              errorData = { message: errorText || 'Failed to delete course' };
+            }
+            throw new Error(errorData.message || `Failed to delete course with status: ${response.status}`);
+          }
+
+          message.success(`${course.title} has been deleted`);
+          fetchCourses(); // Reload courses
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : 'Failed to delete course';
+          console.error('Error deleting course:', errorMessage);
+          message.error(errorMessage);
+        } finally {
+          setIsLoading(false);
+        }
+      },
+    });
+  };
+
+  const handleCourseModalCancel = () => {
+    setIsCourseModalOpen(false);
+    courseForm.resetFields();
+  };
+
+  const handleCourseModalSubmit = async () => {
+    try {
+      const values = await courseForm.validateFields();
+      setIsLoading(true);
+      console.log('Creating/updating course with values:', values);
+      
+      // Make direct API call
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
+
+      if (editingCourse) {
+        console.log('Updating course with ID:', editingCourse.id);
+        const courseData = {
+          title: values.title,
+          instructor: values.instructor,
+          description: values.description,
+          maxStudents: values.students
+        };
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/courses/${editingCourse.id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(courseData),
+        });
+
+        console.log('Update course response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Update course error:', errorText);
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { message: errorText || 'Failed to update course' };
+          }
+          throw new Error(errorData.message || `Failed to update course with status: ${response.status}`);
+        }
+
+        message.success('Course updated successfully!');
+      } else {
+        console.log('Creating new course');
+        const courseData = {
+          title: values.title,
+          instructor: values.instructor,
+          description: values.description || '',
+          students: 0,
+          maxStudents: values.students
+        };
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/courses`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(courseData),
+        });
+
+        console.log('Create course response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Create course error:', errorText);
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { message: errorText || 'Failed to create course' };
+          }
+          throw new Error(errorData.message || `Failed to create course with status: ${response.status}`);
+        }
+
+        message.success('Course created successfully!');
+      }
+      
+      fetchCourses(); // Reload courses
+      setIsCourseModalOpen(false);
+      courseForm.resetFields();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save course';
+      console.error('Error saving course:', errorMessage);
+      message.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const userColumns = [
     {
       title: 'Name',
-      dataIndex: 'firstName',
       key: 'name',
-      render: (text: string, record: User) => `${record.firstName} ${record.lastName}`,
+      render: (record: User) => `${record.firstName} ${record.lastName}`,
     },
     {
       title: 'Email',
@@ -162,7 +532,7 @@ export default function AdminDashboard() {
     {
       title: 'Role',
       key: 'role',
-      render: (text: string, record: User) => (
+      render: (record: User) => (
         record.isAdmin ? <Text strong>Admin</Text> : 'Student'
       ),
     },
@@ -170,14 +540,41 @@ export default function AdminDashboard() {
       title: 'Created At',
       dataIndex: 'createdAt',
       key: 'createdAt',
+      render: (date: string) => new Date(date).toLocaleDateString(),
     },
     {
       title: 'Actions',
       key: 'actions',
-      render: () => (
+      render: (record: User) => (
         <Space>
-          <Button icon={<EditOutlined />} size="small">Edit</Button>
-          <Button icon={<DeleteOutlined />} size="small" danger>Delete</Button>
+          <Button 
+            icon={<EditOutlined />} 
+            size="small"
+            onClick={() => {
+              message.info('Edit functionality coming soon');
+            }}
+          >
+            Edit
+          </Button>
+          <Button 
+            icon={<DeleteOutlined />} 
+            size="small" 
+            danger
+            onClick={() => {
+              Modal.confirm({
+                title: 'Delete User',
+                content: `Are you sure you want to delete ${record.firstName} ${record.lastName}?`,
+                okText: 'Yes',
+                okType: 'danger',
+                cancelText: 'No',
+                onOk() {
+                  handleDeleteUser(record.id);
+                }
+              });
+            }}
+          >
+            Delete
+          </Button>
         </Space>
       ),
     },
@@ -216,6 +613,35 @@ export default function AdminDashboard() {
     },
   ];
 
+  const courseColumns = [
+    { title: 'Course', dataIndex: 'title', key: 'title' },
+    { title: 'Instructor', dataIndex: 'instructor', key: 'instructor' },
+    { title: 'Students', dataIndex: 'students', key: 'students' },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_: unknown, record: Course) => (
+        <Space>
+          <Button 
+            icon={<EditOutlined />} 
+            size="small" 
+            onClick={() => handleEditCourse(record)}
+          >
+            Edit
+          </Button>
+          <Button 
+            icon={<DeleteOutlined />} 
+            size="small" 
+            danger 
+            onClick={() => handleDeleteCourse(record)}
+          >
+            Delete
+          </Button>
+        </Space>
+      ),
+    },
+  ];
+
   const renderContent = () => {
     switch (selectedMenu) {
       case 'dashboard':
@@ -226,7 +652,7 @@ export default function AdminDashboard() {
             <Row gutter={16} style={{ marginBottom: '24px' }}>
               <Col span={8}>
                 <Card>
-                  <Statistic title="Total Users" value={USERS.length} />
+                  <Statistic title="Total Users" value={users.length} />
                 </Card>
               </Col>
               <Col span={8}>
@@ -236,7 +662,7 @@ export default function AdminDashboard() {
               </Col>
               <Col span={8}>
                 <Card>
-                  <Statistic title="Active Students" value={USERS.filter(u => !u.isAdmin).length} />
+                  <Statistic title="Active Students" value={users.filter(u => !u.isAdmin).length} />
                 </Card>
               </Col>
             </Row>
@@ -267,11 +693,17 @@ export default function AdminDashboard() {
             </div>
             
             <Card>
+              {error && (
+                <div style={{ marginBottom: '16px', color: 'red' }}>
+                  Error loading users: {error}
+                </div>
+              )}
               <Table 
-                dataSource={USERS} 
+                dataSource={users} 
                 columns={userColumns} 
                 rowKey="id" 
                 pagination={{ pageSize: 10 }}
+                loading={loadingUsers}
               />
             </Card>
           </>
@@ -317,35 +749,24 @@ export default function AdminDashboard() {
               <Button 
                 type="primary" 
                 icon={<PlusOutlined />}
+                onClick={handleCreateCourse}
               >
                 Add Course
               </Button>
             </div>
             
             <Card>
+              {error && (
+                <div style={{ marginBottom: '16px', color: 'red' }}>
+                  Error loading courses: {error}
+                </div>
+              )}
               <Table 
-                dataSource={[
-                  { id: 1, title: 'Cognitive Behavioral Therapy', instructor: 'Dr. Sarah Johnson', students: 15 },
-                  { id: 2, title: 'Neuroscience Fundamentals', instructor: 'Dr. Michael Brown', students: 12 },
-                  { id: 3, title: 'Mental Health Fundamentals', instructor: 'Dr. Emily Wilson', students: 18 },
-                ]} 
-                columns={[
-                  { title: 'Course', dataIndex: 'title', key: 'title' },
-                  { title: 'Instructor', dataIndex: 'instructor', key: 'instructor' },
-                  { title: 'Students', dataIndex: 'students', key: 'students' },
-                  {
-                    title: 'Actions',
-                    key: 'actions',
-                    render: () => (
-                      <Space>
-                        <Button icon={<EditOutlined />} size="small">Edit</Button>
-                        <Button icon={<DeleteOutlined />} size="small" danger>Delete</Button>
-                      </Space>
-                    ),
-                  },
-                ]}
+                dataSource={courses} 
+                columns={courseColumns}
                 rowKey="id"
                 pagination={{ pageSize: 10 }}
+                loading={loadingCourses}
               />
             </Card>
           </>
@@ -419,7 +840,7 @@ export default function AdminDashboard() {
           justifyContent: 'flex-end',
           boxShadow: '0 1px 4px rgba(0,21,41,.08)'
         }}>
-          <Text>Welcome, {user.firstName} {user.lastName}</Text>
+          <Text>Welcome, {user.firstName} User</Text>
         </Header>
         
         <Content style={{ padding: '24px', overflow: 'auto' }}>
@@ -562,6 +983,63 @@ export default function AdminDashboard() {
             label="Description"
           >
             <Input.TextArea rows={4} placeholder="Enter meeting description" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Course Modal */}
+      <Modal
+        title={editingCourse ? "Edit Course" : "Create New Course"}
+        open={isCourseModalOpen}
+        onCancel={handleCourseModalCancel}
+        footer={[
+          <Button key="cancel" onClick={handleCourseModalCancel}>
+            Cancel
+          </Button>,
+          <Button 
+            key="submit" 
+            type="primary" 
+            loading={isLoading}
+            onClick={() => courseForm.submit()}
+          >
+            {editingCourse ? "Update Course" : "Create Course"}
+          </Button>
+        ]}
+      >
+        <Form
+          form={courseForm}
+          layout="vertical"
+          onFinish={handleCourseModalSubmit}
+        >
+          <Form.Item
+            name="title"
+            label="Course Title"
+            rules={[{ required: true, message: 'Please enter the course title' }]}
+          >
+            <Input />
+          </Form.Item>
+          
+          <Form.Item
+            name="instructor"
+            label="Instructor"
+            rules={[{ required: true, message: 'Please enter the instructor name' }]}
+          >
+            <Input />
+          </Form.Item>
+          
+          <Form.Item
+            name="description"
+            label="Description"
+          >
+            <Input.TextArea rows={4} />
+          </Form.Item>
+          
+          <Form.Item
+            name="students"
+            label="Maximum Students"
+            rules={[{ required: true, message: 'Please enter maximum students' }]}
+          >
+            <Input type="number" min={1} />
           </Form.Item>
         </Form>
       </Modal>

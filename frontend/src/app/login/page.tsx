@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
-import { Input, Button, Typography, Alert, Space, Form } from 'antd';
+import { Input, Button, Typography, Alert, Form } from 'antd';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
@@ -15,12 +15,13 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const [directApiResult, setDirectApiResult] = useState<string | null>(null);
 
-  // Check if user is already logged in
+  // Check if user is already logged in - let AuthContext handle the redirection
   useEffect(() => {
+    // We don't need to redirect here - AuthContext will handle it
+    // Instead, just check if a user is logged in to prevent showing login page unnecessarily
     if (user) {
-      router.push('/student/dashboard');
+      console.log('User already logged in, redirecting via AuthContext...');
     }
   }, [user, router]);
 
@@ -32,10 +33,10 @@ export default function Login() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = async () => {
     try {
+      console.log('Logging in with:', { email: formData.email, password: '******' });
+      console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
       setError(null);
       setIsSubmitting(true);
       
@@ -45,215 +46,133 @@ export default function Login() {
         throw new Error('Email and password are required');
       }
       
-      console.log('Attempting to sign in with:', { email, password });
-      
+      // Let the signin function in AuthContext handle the redirection based on user role
       await signin(email, password);
       
-      // Manual redirect as backup
-      setTimeout(() => {
-        router.push('/student/dashboard');
-      }, 500);
-    } catch (error: unknown) {
-      console.error('Login error details:', error);
-      if (error instanceof Error) {
-        setError(error.message || 'Failed to login. Please try again.');
-      } else {
-        setError('An unexpected error occurred. Please try again.');
-      }
-    } finally {
+      // No need for manual redirect here - AuthContext will handle it
+    } catch (error: any) {
+      console.error('Login error:', error);
+      setError(error?.message || 'Failed to login. Please check your credentials.');
       setIsSubmitting(false);
     }
   };
 
-  // Direct API test function
-  const testDirectApi = async () => {
-    setDirectApiResult("Testing API directly...");
-    try {
-      const response = await fetch('http://localhost:15001/lms/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: 'test@example.com',
-          password: 'password123',
-        }),
-      });
-      
-      const responseText = await response.text();
-      console.log('Direct API Response:', response.status, responseText);
-      
-      if (response.ok) {
-        setDirectApiResult(`Success! Status: ${response.status}, Response: ${responseText}`);
-      } else {
-        setDirectApiResult(`Error: ${response.status}, Response: ${responseText}`);
-      }
-    } catch (error) {
-      console.error('Direct API test error:', error);
-      setDirectApiResult(`Fetch error: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center py-8 px-4" style={{
-      background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      padding: '32px'
     }}>
-      <div className="w-full max-w-md" style={{
+      <div style={{
+        width: '100%',
+        maxWidth: '450px',
         backgroundColor: 'white',
-        borderRadius: '16px',
-        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-        padding: '32px',
-        border: '1px solid rgba(255, 255, 255, 0.3)',
-        position: 'relative',
-        overflow: 'hidden'
+        borderRadius: '12px',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+        padding: '40px',
+        textAlign: 'center'
       }}>
-        {/* Background gradient effect for the card */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          left: 0,
-          background: 'linear-gradient(45deg, rgba(45, 63, 124, 0.03) 0%, rgba(91, 69, 168, 0.06) 100%)',
-          zIndex: 0
-        }} />
-        
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div className="mb-8 text-center">
-            <Title level={2} style={{ 
-              color: '#2d3f7c', 
-              textAlign: 'center',
-              margin: '0 auto 16px',
-              background: 'linear-gradient(90deg, #2d3f7c 0%, #5b45a8 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>
-              Welcome Back
-            </Title>
-            <Text style={{ display: 'block', textAlign: 'center', color: '#666' }}>
-              Sign in to access your account
-            </Text>
-          </div>
+        <Title level={2} style={{ 
+          color: '#4F46E5',
+          marginBottom: '8px'
+        }}>
+          Welcome Back
+        </Title>
+        <Text style={{ 
+          display: 'block', 
+          color: '#6B7280', 
+          marginBottom: '32px'
+        }}>
+          Sign in to access your account
+        </Text>
 
-          {error && (
-            <Alert
-              message="Login Error"
-              description={error}
-              type="error"
-              showIcon
-              className="mb-6"
-              closable
-              onClose={() => setError(null)}
-            />
-          )}
+        {error && (
+          <Alert
+            message="Login Error"
+            description={error}
+            type="error"
+            showIcon
+            style={{ marginBottom: '24px' }}
+            closable
+            onClose={() => setError(null)}
+          />
+        )}
 
-          {directApiResult && (
-            <Alert
-              message="Direct API Test Result"
-              description={directApiResult}
-              type="info"
-              showIcon
-              className="mb-6"
-              closable
-              onClose={() => setDirectApiResult(null)}
-            />
-          )}
-
-          <Form
-            layout="vertical"
-            onFinish={handleSubmit}
-            style={{ textAlign: 'center' }}
+        <Form
+          layout="vertical"
+          onFinish={handleSubmit}
+        >
+          <Form.Item
+            label="Email address"
+            style={{ marginBottom: '16px', textAlign: 'left' }}
           >
-            <Form.Item
-              label={<div style={{ textAlign: 'center', width: '100%' }}>Email address</div>}
-              style={{ marginBottom: 16 }}
-            >
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                size="large"
-                autoComplete="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Your email address"
-                prefix={<MailOutlined className="text-gray-400 mr-2" />}
-              />
-            </Form.Item>
-            
-            <Form.Item 
-              label={<div style={{ textAlign: 'center', width: '100%' }}>Password</div>}
-              style={{ marginBottom: 6 }}
-            >
-              <Input.Password
-                id="password"
-                name="password"
-                size="large"
-                autoComplete="current-password"
-                value={formData.password}
-                onChange={handleInputChange}
-                placeholder="Your password"
-                prefix={<LockOutlined className="text-gray-400 mr-2" />}
-              />
-            </Form.Item>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              size="large"
+              autoComplete="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              placeholder="Your email address"
+              prefix={<MailOutlined style={{ color: '#9CA3AF' }} />}
+            />
+          </Form.Item>
+          
+          <Form.Item 
+            label="Password"
+            style={{ marginBottom: '8px', textAlign: 'left' }}
+          >
+            <Input.Password
+              id="password"
+              name="password"
+              size="large"
+              autoComplete="current-password"
+              value={formData.password}
+              onChange={handleInputChange}
+              placeholder="Your password"
+              prefix={<LockOutlined style={{ color: '#9CA3AF' }} />}
+            />
+          </Form.Item>
 
-            <div style={{ textAlign: 'center', marginBottom: 24 }}>
-              <Link href="/forgot-password" style={{ 
-                fontSize: '14px',
-                background: 'linear-gradient(90deg, #2d3f7c 0%, #5b45a8 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}>
-                Forgot password?
-              </Link>
-            </div>
-
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Button
-                type="primary"
-                htmlType="submit"
-                size="large"
-                loading={isSubmitting || loading}
-                disabled={isSubmitting || loading}
-                block
-                style={{
-                  background: 'linear-gradient(90deg, #2d3f7c 0%, #5b45a8 100%)',
-                  border: 'none',
-                  height: '48px',
-                  marginTop: '16px'
-                }}
-              >
-                {isSubmitting || loading ? 'Signing in...' : 'Sign in'}
-              </Button>
-
-              <Button 
-                onClick={testDirectApi} 
-                type="default" 
-                size="large" 
-                block
-              >
-                Test Direct API Connection
-              </Button>
-            </Space>
-          </Form>
-
-          <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-            <Text style={{ color: '#666' }}>
-              Don&apos;t have an account?{' '}
-              <Link href="/signup" style={{ 
-                color: '#2d3f7c',
-                fontWeight: 500,
-                background: 'linear-gradient(90deg, #2d3f7c 0%, #5b45a8 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}>
-                Sign up
-              </Link>
-            </Text>
+          <div style={{ textAlign: 'right', marginBottom: '24px' }}>
+            <Link href="/forgot-password" style={{ 
+              fontSize: '14px',
+              color: '#4F46E5'
+            }}>
+              Forgot password?
+            </Link>
           </div>
+
+          <Button
+            type="primary"
+            htmlType="submit"
+            size="large"
+            loading={isSubmitting || loading}
+            disabled={isSubmitting || loading}
+            block
+            style={{
+              background: '#4F46E5',
+              height: '48px',
+              marginTop: '16px'
+            }}
+          >
+            {isSubmitting || loading ? 'Signing in...' : 'Sign in'}
+          </Button>
+        </Form>
+
+        <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #E5E7EB' }}>
+          <Text style={{ color: '#6B7280' }}>
+            Don&apos;t have an account?{' '}
+            <Link href="/signup" style={{ 
+              color: '#4F46E5',
+              fontWeight: 500
+            }}>
+              Sign up
+            </Link>
+          </Text>
         </div>
       </div>
     </div>

@@ -10,9 +10,23 @@ async function bootstrap() {
   // Serve static files
   app.useStaticAssets(join(__dirname, '..', 'public'));
   
+  // Set up allowed origins with environment variable
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:22000';
+  const allowedOrigins = [
+    'http://localhost:23000', 
+    'http://127.0.0.1:23000', 
+    'http://localhost:22000', 
+    'http://127.0.0.1:22000', 
+    'https://www.drakanksha.co', 
+    'http://www.drakanksha.co',
+    frontendUrl
+  ];
+  
+  console.log('CORS: Allowing origins:', allowedOrigins);
+  
   // Enable CORS
   app.enableCors({
-    origin: ['http://localhost:23000', 'http://127.0.0.1:23000', 'http://localhost:22000', 'http://127.0.0.1:22000', 'https://www.drakanksha.co', 'http://www.drakanksha.co', 'https://destinpq-lms-63d26b382b63.herokuapp.com'],
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true,
     allowedHeaders: 'Content-Type, Authorization, X-Requested-With',
@@ -32,5 +46,6 @@ async function bootstrap() {
   
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}`);
+  console.log(`Frontend URL: ${frontendUrl}`);
 }
 bootstrap();

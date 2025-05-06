@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:15001/lms';
+// Use environment variable for API URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:15001/lms';
 
 export interface LoginCredentials {
   email: string;
@@ -44,8 +45,8 @@ export const authService = {
         let errorData;
         try {
           errorData = JSON.parse(errorText);
-        } catch (e) {
-          errorData = { message: errorText || 'Login failed' };
+        } catch {
+          errorData = { message: errorText || 'Failed to login' };
         }
         throw new Error(errorData.message || `Login failed with status: ${response.status}`);
       }
@@ -79,8 +80,8 @@ export const authService = {
         let errorData;
         try {
           errorData = JSON.parse(errorText);
-        } catch (e) {
-          errorData = { message: errorText || 'Registration failed' };
+        } catch {
+          errorData = { message: errorText || 'Failed to register' };
         }
         throw new Error(errorData.message || `Registration failed with status: ${response.status}`);
       }
@@ -119,7 +120,7 @@ export const authService = {
         let errorData;
         try {
           errorData = JSON.parse(errorText);
-        } catch (e) {
+        } catch {
           errorData = { message: errorText || 'Failed to get profile' };
         }
         throw new Error(errorData.message || `Failed to get profile with status: ${response.status}`);
@@ -131,6 +132,16 @@ export const authService = {
     } catch (error) {
       console.error('Profile fetch error:', error);
       throw error;
+    }
+  },
+
+  // Convert JWT token payload to User object
+  parseToken(token: string): any {
+    try {
+      const decoded = JSON.parse(atob(token.split('.')[1]));
+      return decoded;
+    } catch {
+      throw new Error('Failed to verify token');
     }
   },
 }; 
