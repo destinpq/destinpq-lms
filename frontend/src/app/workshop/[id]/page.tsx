@@ -10,7 +10,6 @@ import {
   Typography, 
   Space, 
   Divider, 
-  Avatar,
   Descriptions,
   Spin,
   Alert,
@@ -166,25 +165,14 @@ export default function WorkshopPage() {
             
             <div style={{ marginTop: 24, marginBottom: 24, textAlign: 'center' }}>
               <Space>
-                {workshopData && workshopData.id.toString() === '1' ? (
-                  <Button 
-                    type="primary" 
-                    size="large"
-                    icon={<VideoCameraOutlined />}
-                    onClick={() => window.open('https://zoom.us/j/9809175590?pwd=9wYxfibXHuM59aRoIqGbeWOx2axXfz.1', '_blank')}
-                  >
-                    Join Dr. Akanksha's Meeting
-                  </Button>
-                ) : (
-                  <Button 
-                    type="primary" 
-                    size="large"
-                    icon={<VideoCameraOutlined />}
-                    onClick={() => router.push(`/workshop/${id}/meeting`)}
-                  >
-                    Join Zoom Meeting
-                  </Button>
-                )}
+                <Button 
+                  type="primary" 
+                  size="large"
+                  icon={<VideoCameraOutlined />}
+                  onClick={() => window.open('https://zoom.us/j/9809175590?pwd=9wYxfibXHuM59aRoIqGbeWOx2axXfz.1', '_blank')}
+                >
+                  Join Zoom Meeting
+                </Button>
                 <Button 
                   type="default" 
                   size="large" 
