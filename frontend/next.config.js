@@ -13,7 +13,7 @@ const nextConfig = {
   // Configure environment variables
   env: {
     // The API URL will come from environment variables
-    API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:15001/lms',
+    API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://polar-lowlands-49166-189f8996c2e7.herokuapp.com/lms',
   },
 };
 

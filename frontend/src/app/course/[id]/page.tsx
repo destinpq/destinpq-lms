@@ -29,14 +29,16 @@ export default function CoursePage() {
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://polar-lowlands-49166-189f8996c2e7.herokuapp.com/lms';
+
   useEffect(() => {
     const fetchCourseData = async () => {
       try {
         setIsLoading(true);
         setError(null);
         
-        // Fetch from backend API
-        const response = await fetch(`http://localhost:15001/lms/courses/${id}`);
+        // Fetch from backend API using API_URL
+        const response = await fetch(`${API_URL}/courses/${id}`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch course data: ${response.statusText}`);
