@@ -1,0 +1,13 @@
+INSERT INTO public.workshop (title, instructor, date, description, duration, "time", participants, materials, agenda, "meetingId", "createdAt", "updatedAt") VALUES
+('Unboxing Psychology - Day 1', 'Dr. Akanksha Agarwal', '2025-05-05', 'Session 1 of the Unboxing Psychology workshop series.', '2 hours', '16:00 - 18:00', 0, '[]', '[]', NULL, NOW(), NOW()),
+('Unboxing Psychology - Day 2', 'Dr. Akanksha Agarwal', '2025-05-07', 'Session 2 of the Unboxing Psychology workshop series.', '2 hours', '16:00 - 18:00', 0, '[]', '[]', NULL, NOW(), NOW()),
+('Unboxing Psychology - Day 3', 'Dr. Akanksha Agarwal', '2025-05-09', 'Session 3 of the Unboxing Psychology workshop series.', '2 hours', '16:00 - 18:00', 0, '[]', '[]', NULL, NOW(), NOW()),
+('Unboxing Psychology - Day 4', 'Dr. Akanksha Agarwal', '2025-05-12', 'Session 4 of the Unboxing Psychology workshop series.', '2 hours', '16:00 - 18:00', 0, '[]', '[]', NULL, NOW(), NOW()),
+('Unboxing Psychology - Day 5', 'Dr. Akanksha Agarwal', '2025-05-14', 'Session 5 of the Unboxing Psychology workshop series.', '2 hours', '16:00 - 18:00', 0, '[]', '[]', NULL, NOW(), NOW()),
+('Unboxing Psychology - Day 6', 'Dr. Akanksha Agarwal', '2025-05-16', 'Session 6 of the Unboxing Psychology workshop series.', '2 hours', '16:00 - 18:00', 0, '[]', '[]', NULL, NOW(), NOW()),
+('Unboxing Psychology - Day 7', 'Dr. Akanksha Agarwal', '2025-05-19', 'Session 7 of the Unboxing Psychology workshop series.', '2 hours', '16:00 - 18:00', 0, '[]', '[]', NULL, NOW(), NOW()),
+('Unboxing Psychology - Day 8', 'Dr. Akanksha Agarwal', '2025-05-21', 'Session 8 of the Unboxing Psychology workshop series.', '2 hours', '16:00 - 18:00', 0, '[]', '[]', NULL, NOW(), NOW()),
+('Unboxing Psychology - Day 9', 'Dr. Akanksha Agarwal', '2025-05-23', 'Session 9 of the Unboxing Psychology workshop series.', '2 hours', '16:00 - 18:00', 0, '[]', '[]', NULL, NOW(), NOW()),
+('Unboxing Psychology - Day 10', 'Dr. Akanksha Agarwal', '2025-05-26', 'Session 10 of the Unboxing Psychology workshop series.', '2 hours', '16:00 - 18:00', 0, '[]', '[]', NULL, NOW(), NOW()),
+('Unboxing Psychology - Day 11', 'Dr. Akanksha Agarwal', '2025-05-28', 'Session 11 of the Unboxing Psychology workshop series.', '2 hours', '16:00 - 18:00', 0, '[]', '[]', NULL, NOW(), NOW()),
+('Unboxing Psychology - Day 12', 'Dr. Akanksha Agarwal', '2025-05-30', 'Session 12 of the Unboxing Psychology workshop series.', '2 hours', '16:00 - 18:00', 0, '[]', '[]', NULL, NOW(), NOW()); 
