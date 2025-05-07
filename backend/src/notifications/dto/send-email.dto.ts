@@ -1,9 +1,16 @@
-import { IsEmail, IsString, IsNotEmpty } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  IsNotEmpty,
+  IsArray,
+  ArrayNotEmpty,
+} from 'class-validator';
 
 export class SendEmailDto {
-  @IsEmail()
-  @IsNotEmpty()
-  toEmail: string;
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsEmail({}, { each: true })
+  toEmails: string[];
 
   @IsString()
   @IsNotEmpty()

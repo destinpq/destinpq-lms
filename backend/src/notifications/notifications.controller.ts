@@ -43,14 +43,17 @@ export class NotificationsController {
     this.checkAdmin(req);
     try {
       await this.emailService.sendMail({
-        to: sendEmailDto.toEmail,
+        to: sendEmailDto.toEmails,
         subject: sendEmailDto.subject,
         html: sendEmailDto.htmlBody,
       });
-      return { message: 'Email sent successfully.' };
+      return { message: 'Email(s) sent successfully.' };
     } catch (error: any) {
-      console.error('[NotificationsController] Error sending custom email:', error);
-      const message = error?.message || 'Failed to send email';
+      console.error(
+        '[NotificationsController] Error sending custom email(s):',
+        error,
+      );
+      const message = error?.message || 'Failed to send email(s)';
       const status = error?.status || HttpStatus.INTERNAL_SERVER_ERROR;
       throw new HttpException(message, status);
     }

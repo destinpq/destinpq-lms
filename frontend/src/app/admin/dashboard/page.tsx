@@ -52,8 +52,14 @@ interface Workshop {
   date: string;
   participants: number;
   description?: string;
-  materials?: { name: string; url: string }[];
+  materials?: { 
+    id?: number;
+    name: string;
+    url: string;
+    type: string;
+  }[];
   meetingId?: string;
+  time?: string;
 }
 
 export default function AdminDashboard() {
@@ -128,18 +134,10 @@ export default function AdminDashboard() {
       setLoadingWorkshops(true);
       setError(null);
       
-      // Get token for API call
       const token = localStorage.getItem('access_token');
-      console.log('Using token to fetch workshops:', token ? 'Token exists' : 'No token');
-      
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      // Ensure token has proper Bearer format
+      if (!token) throw new Error('No authentication token found');
       const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
 
-      // Fetch ALL workshops
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops`, {
         method: 'GET',
         headers: {
@@ -149,45 +147,19 @@ export default function AdminDashboard() {
         cache: 'no-store'
       });
 
-      console.log('Workshops API response status:', response.status);
+      if (!response.ok) throw new Error(`Failed to fetch workshops with status: ${response.status}`);
       
-      if (!response.ok) {
-        throw new Error(`Failed to fetch workshops with status: ${response.status}`);
-      }
-
-      const workshopsData = await response.json();
-      console.log('Workshops fetched successfully:', workshopsData);
+      // Assuming API returns the full workshop objects including materials with type
+      const workshopsDataFromApi: Workshop[] = await response.json(); // Use the updated local Workshop interface
+      console.log('Workshops fetched successfully from API:', workshopsDataFromApi);
       
-      // Define an interface for the workshop data coming from the API
-      interface ApiWorkshop {
-        id: number;
-        title: string;
-        instructor: string;
-        date: string;
-        participants: number; // Directly from the entity
-        description?: string;
-        // Add other fields if needed from workshop.entity.ts for display
-      }
+      // No complex re-mapping needed if API returns data matching the updated Workshop interface
+      setWorkshops(workshopsDataFromApi);
       
-      // Transform workshop data
-      const formattedWorkshops = workshopsData.map((workshop: ApiWorkshop) => ({
-        id: workshop.id,
-        title: workshop.title,
-        instructor: workshop.instructor,
-        date: workshop.date, 
-        participants: workshop.participants || 0, // Use the direct field
-        description: workshop.description || ''
-      }));
-      
-      setWorkshops(formattedWorkshops);
-      
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch workshops';
+    } catch (err: any) { // Explicitly type err or handle specific error types
+      const errorMessage = err.message || 'Failed to fetch workshops';
       console.error('Error fetching workshops:', errorMessage);
       setError(errorMessage);
-      
-      // Set to empty array on error
-      console.log('Setting workshops to empty array due to API error');
       setWorkshops([]);
     } finally {
       setLoadingWorkshops(false);
@@ -946,13 +918,20 @@ export default function AdminDashboard() {
     signout();
   }
 
-  const handleSendCustomEmail = async (values: { toEmail: string; subject: string; htmlBody: string }) => {
+  const handleSendCustomEmail = async (values: { toEmails: string[]; subject: string; htmlBody: string }) => {
     setIsSendingEmail(true);
-    message.loading({ content: 'Sending email...', key: 'sendEmail' });
+    message.loading({ content: 'Sending email(s)...', key: 'sendEmail' });
     try {
       const token = localStorage.getItem('access_token');
       if (!token) throw new Error('Authentication token not found.');
       const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+
+      // Backend will be updated to accept toEmails as an array
+      const payload = {
+        toEmails: Array.isArray(values.toEmails) ? values.toEmails : [values.toEmails], // Ensure it's an array
+        subject: values.subject,
+        htmlBody: values.htmlBody,
+      };
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/send-custom-email`, {
         method: 'POST',
@@ -960,18 +939,18 @@ export default function AdminDashboard() {
           'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify(payload),
       });
 
       const responseData = await response.json();
       if (!response.ok) {
-        throw new Error(responseData.message || 'Failed to send email');
+        throw new Error(responseData.message || 'Failed to send email(s)');
       }
-      message.success({ content: 'Email sent successfully!', key: 'sendEmail', duration: 2 });
+      message.success({ content: 'Email(s) sent successfully!', key: 'sendEmail', duration: 2 });
       emailForm.resetFields();
     } catch (error: any) {
       console.error('Error sending custom email:', error);
-      message.error({ content: error.message || 'Failed to send email.', key: 'sendEmail', duration: 2 });
+      message.error({ content: error.message || 'Failed to send email(s).', key: 'sendEmail', duration: 2 });
     } finally {
       setIsSendingEmail(false);
     }
@@ -1082,6 +1061,7 @@ export default function AdminDashboard() {
                 okType: 'danger',
                 cancelText: 'No',
                 onOk() {
+                  console.log('[AdminDashboard] Delete confirmation OK for workshop record:', record);
                   handleDeleteWorkshop(record.id);
                 }
               });
@@ -1265,14 +1245,25 @@ export default function AdminDashboard() {
                 onFinish={handleSendCustomEmail}
               >
                 <Form.Item
-                  name="toEmail"
-                  label="To Email Address"
+                  name="toEmails"
+                  label="To User(s)"
                   rules={[
-                    { required: true, message: 'Please enter the recipient email' },
-                    { type: 'email', message: 'Please enter a valid email' },
+                    { required: true, message: 'Please select at least one recipient' },
                   ]}
                 >
-                  <Input placeholder="recipient@example.com" />
+                  <Select
+                    mode="multiple"
+                    allowClear
+                    style={{ width: '100%' }}
+                    placeholder="Select user(s)"
+                    loading={loadingUsers}
+                  >
+                    {users.map(u => (
+                      <Select.Option key={u.id} value={u.email}>
+                        {u.firstName} {u.lastName} ({u.email})
+                      </Select.Option>
+                    ))}
+                  </Select>
                 </Form.Item>
                 <Form.Item
                   name="subject"
