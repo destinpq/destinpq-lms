@@ -49,6 +49,7 @@ export default function WorkshopPage() {
         
         const workshopId = Array.isArray(id) ? id[0] : id;
         const data = await workshopService.getWorkshopById(workshopId);
+        console.log('[WorkshopPage] Fetched workshop data for countdown:', data);
         setWorkshopData(data);
       } catch (error) {
         console.error('Error fetching workshop data:', error);
