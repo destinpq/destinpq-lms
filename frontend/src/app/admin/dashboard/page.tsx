@@ -1054,8 +1054,12 @@ export default function AdminDashboard() {
             size="small" 
             danger
             onClick={() => {
-              console.log('[AdminDashboard] Delete button clicked for workshop ID:', record.id); 
+              console.log('[AdminDashboard] Delete button clicked for workshop ID:', record.id);
               try {
+                console.log('[AdminDashboard] Attempting to show message.info');
+                message.info('Test message from antd message static method.', 5); // Display for 5 seconds
+                console.log('[AdminDashboard] message.info call completed.');
+
                 console.log('[AdminDashboard] Attempting to show Modal.info');
                 Modal.info({ 
                   title: 'Test Info Modal', 
@@ -1066,7 +1070,7 @@ export default function AdminDashboard() {
                 });
                 console.log('[AdminDashboard] Modal.info call completed (no immediate error).');
               } catch (e) {
-                console.error('[AdminDashboard] Error calling Modal.info:', e);
+                console.error('[AdminDashboard] Error calling Modal.info or message.info:', e);
               }
             }}
           >
