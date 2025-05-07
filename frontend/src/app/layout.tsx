@@ -1,7 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { AuthProvider } from './context/AuthContext'
-import { ConfigProvider } from 'antd'
+import { ConfigProvider, App } from 'antd'
 
 // We don't need Inter anymore since we're using Poppins and Playfair Display
 
@@ -75,11 +75,13 @@ export default function RootLayout({
             },
           }}
         >
-          <AuthProvider>
-            <div className="animate-fadeIn">
-              {children}
-            </div>
-          </AuthProvider>
+          <App>
+            <AuthProvider>
+              <div className="animate-fadeIn">
+                {children}
+              </div>
+            </AuthProvider>
+          </App>
         </ConfigProvider>
       </body>
     </html>

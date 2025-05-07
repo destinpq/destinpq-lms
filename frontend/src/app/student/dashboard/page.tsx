@@ -36,6 +36,7 @@ import {
   // RightOutlined // Removing RightOutlined
 } from '@ant-design/icons';
 import { workshopService, Workshop, Homework, Message } from '@/api/workshopService';
+import Image from 'next/image';
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
@@ -127,14 +128,32 @@ export default function StudentDashboard() {
     return null; // Will redirect via useEffect
   }
 
-  const formatDate = (dateString: string): string => {
+  const formatWorkshopDisplayDateTime = (dateStr: string, timeStr?: string): string => {
+    if (!timeStr) {
+      // If no time string, just format the date
+      return new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).format(new Date(dateStr));
+    }
+    // Attempt to parse start time from timeStr (e.g., "16:00 - 18:00" -> "16:00")
+    const startTime = timeStr.split('-')[0]?.trim();
+    if (!startTime || !/^[0-2]?[0-9]:[0-5][0-9]$/.test(startTime)) {
+      // If time format is unexpected, return date and raw time string
+      return `${new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).format(new Date(dateStr))} - ${timeStr}`;
+    }
+
+    const targetDateTimeStr = `${dateStr}T${startTime}:00`;
+    const targetDate = new Date(targetDateTimeStr);
+
+    if (isNaN(targetDate.getTime())) {
+      return `${new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).format(new Date(dateStr))} - ${timeStr} (Time Parse Error)`;
+    }
+
     return new Intl.DateTimeFormat('en-US', {
       weekday: 'short',
-      month: 'short', 
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
-    }).format(new Date(dateString));
+      minute: '2-digit',
+    }).format(targetDate);
   };
 
   const handleTabChange = (key: string) => {
@@ -144,7 +163,18 @@ export default function StudentDashboard() {
   return (
     <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
       <Header style={{ background: '#fff', padding: '0 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Title level={4} style={{ margin: 0 }}>Student Dashboard</Title>
+        <div style={{display: 'flex', alignItems: 'center'}}>
+          <Image 
+            src="/logo.png" 
+            alt="Psychology LMS Logo"
+            width={100}
+            height={50}
+            priority
+            onClick={() => router.push('/')}
+            style={{ cursor: 'pointer', marginRight: '20px' }}
+          />
+          <Title level={4} style={{ margin: 0, whiteSpace: 'nowrap' }}>Student Dashboard</Title>
+        </div>
         <Space>
           <Badge count={recentMessages.filter(m => m.unread).length || 0} size="small">
             <BellOutlined style={{ fontSize: 18, cursor: 'pointer' }} />
@@ -205,7 +235,7 @@ export default function StudentDashboard() {
                               <>
                                 {/* Display Workshop properties directly */}
                                 <Text>Instructor: {item.instructor}</Text><br />
-                                <Text>Date: {formatDate(item.date)}</Text><br />
+                                <Text>Date: {formatWorkshopDisplayDateTime(item.date, item.time)}</Text><br />
                                 {item.description && <Text type="secondary">{item.description}</Text>}
                               </>
                             }
@@ -250,7 +280,7 @@ export default function StudentDashboard() {
                             description={
                               <>
                                 <Text>{item.course}</Text><br />
-                                <Text type="danger">Due: {formatDate(item.dueDate)}</Text>
+                                <Text type="danger">Due: {formatWorkshopDisplayDateTime(item.dueDate)}</Text>
                               </>
                             }
                           />

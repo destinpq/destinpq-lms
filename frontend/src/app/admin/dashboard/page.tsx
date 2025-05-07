@@ -22,7 +22,8 @@ import {
   message,
   Select,
   DatePicker,
-  Checkbox
+  Checkbox,
+  App
 } from 'antd';
 import {
   UserOutlined,
@@ -40,6 +41,7 @@ import {
 import { User } from '@/api/userService';
 import { Course } from '@/api/courseService';
 import moment from 'moment';
+import Image from 'next/image';
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
@@ -64,6 +66,7 @@ interface Workshop {
 
 export default function AdminDashboard() {
   const { user, loading, signout } = useAuth();
+  const { modal, message: messageApi } = App.useApp();
   const router = useRouter();
   const [selectedMenu, setSelectedMenu] = useState('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -1056,21 +1059,21 @@ export default function AdminDashboard() {
             onClick={() => {
               console.log('[AdminDashboard] Delete button clicked for workshop ID:', record.id);
               try {
-                console.log('[AdminDashboard] Attempting to show message.info');
-                message.info('Test message from antd message static method.', 5); // Display for 5 seconds
-                console.log('[AdminDashboard] message.info call completed.');
+                console.log('[AdminDashboard] Attempting to show messageApi.info');
+                messageApi.info('Test message from antd messageApi instance.', 5);
+                console.log('[AdminDashboard] messageApi.info call completed.');
 
-                console.log('[AdminDashboard] Attempting to show Modal.info');
-                Modal.info({ 
-                  title: 'Test Info Modal', 
-                  content: 'This is a test of Modal.info.',
+                console.log('[AdminDashboard] Attempting to show modal.info');
+                modal.info({
+                  title: 'Test Info Modal (from instance)',
+                  content: 'This is a test of modal.info from App.useApp().',
                   onOk() {
-                    console.log('[AdminDashboard] Modal.info OK button clicked.');
+                    console.log('[AdminDashboard] modal.info (instance) OK button clicked.');
                   }
                 });
-                console.log('[AdminDashboard] Modal.info call completed (no immediate error).');
+                console.log('[AdminDashboard] modal.info (instance) call completed.');
               } catch (e) {
-                console.error('[AdminDashboard] Error calling Modal.info or message.info:', e);
+                console.error('[AdminDashboard] Error calling modal.info or messageApi.info:', e);
               }
             }}
           >
@@ -1307,10 +1310,15 @@ export default function AdminDashboard() {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider width={250} style={{ background: '#fff' }}>
-        <div style={{ padding: '16px', textAlign: 'center' }}>
-          <Title level={4} style={{ margin: 0 }}>Psychology LMS</Title>
-          <Text>Admin Panel</Text>
+      <Sider width={250} style={{ background: '#fff', borderRight: '1px solid #f0f0f0' }}>
+        <div style={{ padding: '16px', textAlign: 'center', cursor: 'pointer' }} onClick={() => router.push('/')}>
+          <Image 
+            src="/logo.png" 
+            alt="Psychology LMS Logo"
+            width={150}
+            height={75}
+            priority
+          />
         </div>
         
         <Divider style={{ margin: '0 0 8px 0' }} />
