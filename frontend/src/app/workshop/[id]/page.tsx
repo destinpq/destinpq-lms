@@ -23,25 +23,14 @@ const { Content, Header } = Layout;
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
 
-interface WorkshopData extends Workshop {
-  materials: {
-    name: string;
-    type: string;
-    link: string;
-  }[];
-  agenda: {
-    time: string;
-    activity: string;
-  }[];
-}
-
 export default function WorkshopPage() {
   const { id } = useParams();
   const router = useRouter();
   const { user, loading } = useAuth();
-  const [workshopData, setWorkshopData] = useState<WorkshopData | null>(null);
+  const [workshopData, setWorkshopData] = useState<Workshop | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState<string>('');
 
   useEffect(() => {
     if (!loading && !user) {
@@ -60,7 +49,7 @@ export default function WorkshopPage() {
         
         const workshopId = Array.isArray(id) ? id[0] : id;
         const data = await workshopService.getWorkshopById(workshopId);
-        setWorkshopData(data as WorkshopData);
+        setWorkshopData(data);
       } catch (error) {
         console.error('Error fetching workshop data:', error);
         setError('Workshop not found or could not be loaded');
@@ -71,6 +60,69 @@ export default function WorkshopPage() {
 
     fetchWorkshopData();
   }, [id, user, loading, router]);
+
+  // Countdown effect
+  useEffect(() => {
+    if (!workshopData || !workshopData.date || !workshopData.time) {
+      setCountdown('Time not specified');
+      return;
+    }
+
+    // Attempt to parse start time from workshopData.time (e.g., "14:00 - 16:00" -> "14:00")
+    const timeParts = workshopData.time.split('-');
+    const startTimeStr = timeParts[0]?.trim(); // Get the first part (start time)
+    if (!startTimeStr) {
+        setCountdown('Start time unclear');
+        return;
+    }
+
+    const targetDateTimeStr = `${workshopData.date}T${startTimeStr}:00`; // Assuming time is HH:mm and needs seconds for full ISO
+    let targetDate = new Date(targetDateTimeStr);
+
+    // Validate parsed date
+    if (isNaN(targetDate.getTime())) {
+        // Fallback if direct parsing HH:mm fails, try to construct with today's date just to parse time
+        const [hours, minutes] = startTimeStr.split(':').map(Number);
+        if (hours !== undefined && minutes !== undefined) {
+            const dateObj = new Date(workshopData.date); // Get the correct date part
+            targetDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), hours, minutes);
+        } else {
+            setCountdown('Invalid start time format');
+            return;
+        }
+    }
+    
+    if (isNaN(targetDate.getTime())) {
+        setCountdown('Invalid workshop date/time');
+        return;
+    }
+
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = targetDate.getTime() - now;
+
+      if (distance < 0) {
+        clearInterval(interval);
+        setCountdown('Workshop has started/ended');
+        return;
+      }
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      let countdownStr = '';
+      if (days > 0) countdownStr += `${days}d `;
+      if (hours > 0 || days > 0) countdownStr += `${hours}h `;
+      if (minutes > 0 || hours > 0 || days > 0) countdownStr += `${minutes}m `;
+      countdownStr += `${seconds}s`;
+      
+      setCountdown(countdownStr.trim() || 'Starting soon...');
+    }, 1000);
+
+    return () => clearInterval(interval); // Cleanup interval on component unmount
+  }, [workshopData]);
 
   if (loading || isLoading) {
     return (
@@ -107,17 +159,6 @@ export default function WorkshopPage() {
     return null;
   }
 
-  const formatDate = (dateString: string) => {
-    return new Intl.DateTimeFormat('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(new Date(dateString));
-  };
-
   return (
     <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
       <Header style={{ 
@@ -151,8 +192,13 @@ export default function WorkshopPage() {
               </Space>
               <Space>
                 <CalendarOutlined />
-                <Text>{formatDate(workshopData.date)}</Text>
+                <Text>{`${new Intl.DateTimeFormat('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(workshopData.date))} ${workshopData.time ? `- ${workshopData.time}` : ''}`}</Text>
               </Space>
+              {countdown && (
+                <Space>
+                  <Text strong> (Starts in: {countdown})</Text>
+                </Space>
+              )}
               <Space>
                 <TeamOutlined />
                 <Text>{workshopData.duration}</Text>
@@ -208,7 +254,7 @@ export default function WorkshopPage() {
                       <Space>
                         <Text strong>{material.name}</Text>
                         <Text type="secondary">({material.type})</Text>
-                        <Button type="link" onClick={() => window.open(material.link, '_blank')}>Download</Button>
+                        <Button type="link" onClick={() => window.open(material.url, '_blank')}>Download</Button>
                       </Space>
                     </div>
                   ))
