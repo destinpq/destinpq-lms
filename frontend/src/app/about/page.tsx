@@ -11,7 +11,8 @@ import {
   Row,
   Col,
   Card,
-  Spin
+  Spin,
+  Divider
 } from 'antd';
 import { 
   LoginOutlined,
@@ -108,18 +109,50 @@ export default function AboutPage() {
       </Header>
 
       <Content style={{ padding: '50px', maxWidth: 1200, margin: '0 auto' }}>
-        <Title level={1} style={{ textAlign: 'center', marginBottom: '50px' }}>About Us</Title>
+        <Title level={1} style={{ textAlign: 'center', marginBottom: '50px' }}>About Dr. Akanksha Agarwal</Title>
         
-        <Row gutter={[32, 32]} justify="center" style={{ marginBottom: '50px' }}>
-          <Col span={20}>
+        <Row justify="center" style={{ marginBottom: '40px' }}>
+          <Col xs={24} md={20} lg={18}>
+            <Title level={3} style={{marginTop: '20px'}}>Who are you?</Title>
             <Paragraph style={{ fontSize: '16px', lineHeight: '1.8' }}>
-              Welcome to Dr. Akanksha Agarwal&apos;s Mental Healthcare platform. We are dedicated to providing high-quality psychological resources, workshops, and a supportive community for learning and growth.
-              Below are some moments from our journey and events.
+              Hi. I&apos;m Dr. Akanksha Agarwal, a Licensed Clinical & Counseling Psychologist with over a decade of experience in the field of Mental Healthcare and Psychology.
+            </Paragraph>
+
+            <Title level={3} style={{marginTop: '20px'}}>What is your area of expertise?</Title>
+            <Paragraph style={{ fontSize: '16px', lineHeight: '1.8' }}>
+              I specialize in Cognitive Behavior Therapy, Neuropsychology, Fourth wave therapies, Psycho-Oncology and use evidenced based practices to help clients/patients ranging from pediatric to geriatric. I pay strong emphasis on accurate diagnosis and tailor-made treatment.
+            </Paragraph>
+
+            <Title level={3} style={{marginTop: '20px'}}>What services do you offer?</Title>
+            <Paragraph style={{ fontSize: '16px', lineHeight: '1.8' }}>
+              I provide offline and online consultations for assessments, diagnostic clarifications, psychotherapy. I also provide training and supervision, teaching, workshop collaborations.
+            </Paragraph>
+
+            <Title level={3} style={{marginTop: '20px'}}>Who do you work with?</Title>
+            <Paragraph style={{ fontSize: '16px', lineHeight: '1.8' }}>
+              I work with pediatrics to geriatrics, providing interventions suitable on case-basis.
+            </Paragraph>
+
+            <Title level={3} style={{marginTop: '20px'}}>What is your approach or philosophy?</Title>
+            <Paragraph style={{ fontSize: '16px', lineHeight: '1.8' }}>
+              I strongly believe that every human has the potential to be the best of their abilities. I practice confidentiality, informed consent, utmost respect and dignity, empathy and understanding, non- judgemental attitude and cultural competence.
+            </Paragraph>
+
+            <Title level={3} style={{marginTop: '20px'}}>Why should someone choose you?</Title>
+            <Paragraph style={{ fontSize: '16px', lineHeight: '1.8' }}>
+              I believe in delivering to the best of my abilities. I do not shy away from exploring and learning. I give my 200% to each case. My approach is not time bound where the focus is on finishing the season in under 50 minutes. It is beyond materiality. Any change occurs only through awareness and acceptance and that is what I help my clients/ patients discover and achieve.
+            </Paragraph>
+
+            <Title level={3} style={{marginTop: '20px'}}>How can people get in touch with you?</Title>
+            <Paragraph style={{ fontSize: '16px', lineHeight: '1.8' }}>
+              You can get in touch by exploring the workshops and services offered on this platform, or by reaching out through the <a href="/contact">Contact page</a> for consultations or collaborations.
             </Paragraph>
           </Col>
         </Row>
 
-        <Title level={2} style={{ textAlign: 'center', marginBottom: '40px' }}>Gallery</Title>
+        <Divider />
+
+        <Title level={2} style={{ textAlign: 'center', margin: '40px 0' }}>Gallery</Title>
         {loadingDescriptions ? (
           <div style={{ textAlign: 'center', padding: '50px' }}>
             <Spin size="large" />
