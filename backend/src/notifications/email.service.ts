@@ -23,15 +23,6 @@ export class EmailService {
         user: this.configService.get<string>('SMTP_USER'),
         pass: this.configService.get<string>('SMTP_PASS'),
       },
-      tls: {
-        // Only include rejectUnauthorized: false if absolutely necessary for specific environments
-        // and ensure it's also configurable via an env var if needed.
-        // For typical setups with valid certs (like GoDaddy should have), it's not needed.
-        rejectUnauthorized: this.configService.get<string>(
-          'SMTP_TLS_REJECT_UNAUTHORIZED',
-          'true',
-        ) === 'false',
-      },
     });
 
     this.transporter.verify((error, success) => {
