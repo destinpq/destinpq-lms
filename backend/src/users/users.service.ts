@@ -20,12 +20,12 @@ export class UsersService implements OnModuleInit {
   async seedAdminUser() {
     const adminEmail = 'admin@example.com';
     const existingAdmin = await this.findByEmail(adminEmail);
-
+    
     if (!existingAdmin) {
       console.log('No admin user found. Creating default admin account...');
-
+      
       const hashedPassword = await bcrypt.hash('admin123', 10);
-
+      
       const adminUser = this.usersRepository.create({
         firstName: 'Admin',
         lastName: 'User',
@@ -33,7 +33,7 @@ export class UsersService implements OnModuleInit {
         password: hashedPassword,
         isAdmin: true,
       });
-
+      
       await this.usersRepository.save(adminUser);
       console.log('Admin user created successfully!');
     }
@@ -42,12 +42,12 @@ export class UsersService implements OnModuleInit {
   async seedTestUser() {
     const testEmail = 'test@example.com';
     const existingTestUser = await this.findByEmail(testEmail);
-
+    
     if (!existingTestUser) {
       console.log('No test user found. Creating test account...');
-
+      
       const hashedPassword = await bcrypt.hash('password123', 10);
-
+      
       const testUser = this.usersRepository.create({
         firstName: 'Test',
         lastName: 'User',
@@ -55,7 +55,7 @@ export class UsersService implements OnModuleInit {
         password: hashedPassword,
         isAdmin: false,
       });
-
+      
       await this.usersRepository.save(testUser);
       console.log('Test user created successfully!');
     }
@@ -76,7 +76,7 @@ export class UsersService implements OnModuleInit {
     console.log(
       `[UsersService] Finding user by email: ${email}, IncludePassword: ${includePassword}`,
     );
-
+    
     try {
       const qb = this.usersRepository
         .createQueryBuilder('u')
@@ -95,7 +95,7 @@ export class UsersService implements OnModuleInit {
       if (includePassword) {
         qb.addSelect('u.password');
       }
-
+      
       try {
         const sqlAndParams = qb.getQueryAndParameters();
         console.log(
@@ -109,7 +109,7 @@ export class UsersService implements OnModuleInit {
       }
 
       const user = await qb.getOne();
-
+      
       if (!user) {
         console.log(
           `[UsersService] Query for ${email} (IncludePassword: ${includePassword}) executed but returned no user from database.`,
@@ -147,4 +147,4 @@ export class UsersService implements OnModuleInit {
   async remove(id: number): Promise<void> {
     await this.usersRepository.delete(id);
   }
-}
+} 

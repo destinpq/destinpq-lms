@@ -31,8 +31,9 @@ export class Workshop {
 
   @Column({ type: 'json', nullable: true })
   materials: {
-    id: number;
+    id?: number;
     name: string;
+    type: string;
     url: string;
   }[];
 

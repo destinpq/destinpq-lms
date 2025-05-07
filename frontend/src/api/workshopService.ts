@@ -109,19 +109,24 @@ export interface Workshop {
   title: string;
   instructor: string;
   date: string;
+  time?: string; // Added: e.g., "14:00 - 16:00"
   description?: string;
   duration?: string;
   materials?: {
+    id?: number;
     name: string;
     type: string;
-    link: string;
+    url: string;
   }[];
   agenda?: {
     time: string;
     activity: string;
   }[];
   participants: number;
+  meetingId?: string; // Added
   // Add any other fields your Workshop entity might have
+  createdAt?: string | Date; // From entity
+  updatedAt?: string | Date; // From entity
 }
 
 export interface Session {

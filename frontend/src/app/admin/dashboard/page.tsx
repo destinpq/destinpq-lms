@@ -34,7 +34,8 @@ import {
   EditOutlined,
   DeleteOutlined,
   VideoCameraOutlined,
-  MinusCircleOutlined
+  MinusCircleOutlined,
+  MailOutlined
 } from '@ant-design/icons';
 import { User } from '@/api/userService';
 import { Course } from '@/api/courseService';
@@ -82,6 +83,8 @@ export default function AdminDashboard() {
   const [loadingCourses, setLoadingCourses] = useState(false);
   const [loadingWorkshops, setLoadingWorkshops] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailForm] = Form.useForm();
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   // Load workshops from API instead of localStorage
   useEffect(() => {
@@ -943,6 +946,37 @@ export default function AdminDashboard() {
     signout();
   }
 
+  const handleSendCustomEmail = async (values: { toEmail: string; subject: string; htmlBody: string }) => {
+    setIsSendingEmail(true);
+    message.loading({ content: 'Sending email...', key: 'sendEmail' });
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) throw new Error('Authentication token not found.');
+      const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/send-custom-email`, {
+        method: 'POST',
+        headers: {
+          'Authorization': formattedToken,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+
+      const responseData = await response.json();
+      if (!response.ok) {
+        throw new Error(responseData.message || 'Failed to send email');
+      }
+      message.success({ content: 'Email sent successfully!', key: 'sendEmail', duration: 2 });
+      emailForm.resetFields();
+    } catch (error: any) {
+      console.error('Error sending custom email:', error);
+      message.error({ content: error.message || 'Failed to send email.', key: 'sendEmail', duration: 2 });
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
   const userColumns = [
     {
       title: 'Name',
@@ -1220,6 +1254,50 @@ export default function AdminDashboard() {
           </>
         );
       
+      case 'emailTool':
+        return (
+          <>
+            <Title level={2} style={{ marginBottom: '24px' }}>Send Custom Email</Title>
+            <Card>
+              <Form
+                form={emailForm}
+                layout="vertical"
+                onFinish={handleSendCustomEmail}
+              >
+                <Form.Item
+                  name="toEmail"
+                  label="To Email Address"
+                  rules={[
+                    { required: true, message: 'Please enter the recipient email' },
+                    { type: 'email', message: 'Please enter a valid email' },
+                  ]}
+                >
+                  <Input placeholder="recipient@example.com" />
+                </Form.Item>
+                <Form.Item
+                  name="subject"
+                  label="Subject"
+                  rules={[{ required: true, message: 'Please enter the email subject' }]}
+                >
+                  <Input placeholder="Email Subject" />
+                </Form.Item>
+                <Form.Item
+                  name="htmlBody"
+                  label="Email Body (HTML allowed)"
+                  rules={[{ required: true, message: 'Please enter the email body' }]}
+                >
+                  <Input.TextArea rows={10} placeholder="<p>Hello,</p><p>This is your email content.</p>" />
+                </Form.Item>
+                <Form.Item>
+                  <Button type="primary" htmlType="submit" loading={isSendingEmail}>
+                    Send Email
+                  </Button>
+                </Form.Item>
+              </Form>
+            </Card>
+          </>
+        );
+      
       default:
         return (
           <div style={{ textAlign: 'center', padding: '100px 0' }}>
@@ -1264,6 +1342,11 @@ export default function AdminDashboard() {
               key: 'courses',
               icon: <BookOutlined />,
               label: 'Courses'
+            },
+            {
+              key: 'emailTool',
+              icon: <MailOutlined />,
+              label: 'Email Tool'
             },
             {
               type: 'divider'
@@ -1565,7 +1648,7 @@ export default function AdminDashboard() {
               <>
                 {fields.map(({ key, name, ...restField }) => (
                   <Row key={key} gutter={16} align="bottom" style={{ marginBottom: 0 }}>
-                    <Col span={11}>
+                    <Col span={7}>
                       <Form.Item
                         {...restField}
                         name={[name, 'name']}
@@ -1575,7 +1658,7 @@ export default function AdminDashboard() {
                         <Input placeholder="E.g., Slides PDF" />
                       </Form.Item>
                     </Col>
-                    <Col span={11}>
+                    <Col span={10}>
                       <Form.Item
                         {...restField}
                         name={[name, 'url']}
@@ -1585,13 +1668,23 @@ export default function AdminDashboard() {
                         <Input placeholder="https://example.com/material.pdf" />
                       </Form.Item>
                     </Col>
+                    <Col span={5}>
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'type']} 
+                        label="Type"
+                        rules={[{ required: true, message: 'Missing material type' }]}
+                      >
+                        <Input placeholder="E.g., PDF, DOCX, Link" />
+                      </Form.Item>
+                    </Col>
                     <Col span={2} style={{ display: 'flex', alignItems: 'center', paddingBottom: '24px' }}>
                       <MinusCircleOutlined onClick={() => remove(name)} />
                     </Col>
                   </Row>
                 ))}
                 <Form.Item style={{ marginTop: '16px' }}>
-                  <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                  <Button type="dashed" onClick={() => add({ name: '', url: '', type: '' })} block icon={<PlusOutlined />}>
                     Add Material
                   </Button>
                 </Form.Item>

@@ -9,6 +9,7 @@ import { CoursesModule } from './courses/courses.module';
 import { ZoomModule } from './zoom/zoom.module';
 import { WorkshopsModule } from './workshops/workshops.module';
 import { AboutPageContentModule } from './about-page-content/about-page-content.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { typeOrmConfig } from './config/typeorm.config';
 import { JwtModule } from '@nestjs/jwt';
 
@@ -28,6 +29,7 @@ import { JwtModule } from '@nestjs/jwt';
     ZoomModule,
     WorkshopsModule,
     AboutPageContentModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
