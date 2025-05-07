@@ -20,12 +20,12 @@ export class UsersService implements OnModuleInit {
   async seedAdminUser() {
     const adminEmail = 'admin@example.com';
     const existingAdmin = await this.findByEmail(adminEmail);
-    
+
     if (!existingAdmin) {
       console.log('No admin user found. Creating default admin account...');
-      
+
       const hashedPassword = await bcrypt.hash('admin123', 10);
-      
+
       const adminUser = this.usersRepository.create({
         firstName: 'Admin',
         lastName: 'User',
@@ -33,7 +33,7 @@ export class UsersService implements OnModuleInit {
         password: hashedPassword,
         isAdmin: true,
       });
-      
+
       await this.usersRepository.save(adminUser);
       console.log('Admin user created successfully!');
     }
@@ -42,12 +42,12 @@ export class UsersService implements OnModuleInit {
   async seedTestUser() {
     const testEmail = 'test@example.com';
     const existingTestUser = await this.findByEmail(testEmail);
-    
+
     if (!existingTestUser) {
       console.log('No test user found. Creating test account...');
-      
+
       const hashedPassword = await bcrypt.hash('password123', 10);
-      
+
       const testUser = this.usersRepository.create({
         firstName: 'Test',
         lastName: 'User',
@@ -55,7 +55,7 @@ export class UsersService implements OnModuleInit {
         password: hashedPassword,
         isAdmin: false,
       });
-      
+
       await this.usersRepository.save(testUser);
       console.log('Test user created successfully!');
     }
@@ -69,39 +69,66 @@ export class UsersService implements OnModuleInit {
     return this.usersRepository.findOneBy({ id });
   }
 
-  async findByEmail(email: string, includePassword: boolean = false): Promise<User | null> {
-    console.log(`[UsersService] Finding user by email: ${email}, IncludePassword: ${includePassword}`);
-    
-    let user: User | null = null;
+  async findByEmail(
+    email: string,
+    includePassword: boolean = false,
+  ): Promise<User | null> {
+    console.log(
+      `[UsersService] Finding user by email: ${email}, IncludePassword: ${includePassword}`,
+    );
+
     try {
-      const query = this.usersRepository
-        .createQueryBuilder('user')
-        .where('TRIM(LOWER(user.email)) = TRIM(LOWER(:email))', { email });
+      const qb = this.usersRepository
+        .createQueryBuilder('u')
+        .where('TRIM(LOWER(u.email)) = TRIM(LOWER(:email))', { email });
+
+      qb.select([
+        'u.id',
+        'u.firstName',
+        'u.lastName',
+        'u.email',
+        'u.isAdmin',
+        'u.createdAt',
+        'u.updatedAt',
+      ]);
 
       if (includePassword) {
-        query.addSelect('user.password');
-      }
-      
-      // Log the generated SQL and parameters
-      try {
-        const sqlAndParams = query.getQueryAndParameters();
-        console.log(`[UsersService] Executing SQL: ${sqlAndParams[0]}, Parameters: ${JSON.stringify(sqlAndParams[1])}`);
-      } catch (e) {
-        console.warn('[UsersService] Could not get SQL query and parameters for logging:', e);
+        qb.addSelect('u.password');
       }
 
-      user = await query.getOne();
-      
-      if (!user) {
-        console.log(`[UsersService] Query for ${email} (IncludePassword: ${includePassword}) executed but returned no user from database.`);
+      try {
+        const sqlAndParams = qb.getQueryAndParameters();
+        console.log(
+          `[UsersService] Executing SQL: ${sqlAndParams[0]}, Parameters: ${JSON.stringify(sqlAndParams[1])}`,
+        );
+      } catch (e) {
+        console.warn(
+          '[UsersService] Could not get SQL query and parameters for logging:',
+          e,
+        );
       }
-      console.log(`[UsersService] Result for ${email} (IncludePassword: ${includePassword}). Found: ${!!user}${user ? ' (ID: ' + user.id + ')' : ''}`);
+
+      const user = await qb.getOne();
+
+      if (!user) {
+        console.log(
+          `[UsersService] Query for ${email} (IncludePassword: ${includePassword}) executed but returned no user from database.`,
+        );
+      }
+      console.log(
+        `[UsersService] Result for ${email} (IncludePassword: ${includePassword}). Found: ${!!user}${user ? ' (ID: ' + user.id + ')' : ''}`,
+      );
       return user;
     } catch (error) {
-      console.error(`[UsersService] CRITICAL ERROR during findByEmail for ${email}:`, error);
-      // Log the error object itself for more details if it's not a simple string
+      console.error(
+        `[UsersService] CRITICAL ERROR during findByEmail for ${email}:`,
+        error,
+      );
       if (typeof error === 'object' && error !== null) {
-        console.error('[UsersService] Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+        console.error(
+          '[UsersService] Error details:',
+          JSON.stringify(error, Object.getOwnPropertyNames(error)),
+        );
       }
       throw error;
     }
@@ -120,4 +147,4 @@ export class UsersService implements OnModuleInit {
   async remove(id: number): Promise<void> {
     await this.usersRepository.delete(id);
   }
-} 
+}
