@@ -87,7 +87,7 @@ export default function AboutPage() {
         </div>
         <Menu mode="horizontal" defaultSelectedKeys={['about']} style={{ flex: 1, justifyContent: 'center' }}>
           <Menu.Item key="home" onClick={() => router.push('/')}>Home</Menu.Item>
-          <Menu.Item key="workshops" onClick={() => router.push('/workshops')}>Workshops</Menu.Item>
+          {/* <Menu.Item key="workshops" onClick={() => router.push('/workshops')}>Workshops</Menu.Item> */}
           <Menu.Item key="about" onClick={() => router.push('/about')}>About</Menu.Item>
           <Menu.Item key="contact" onClick={() => router.push('/contact')}>Contact</Menu.Item>
         </Menu>

@@ -14,10 +14,13 @@ import {
   Card,
   Form,
   message,
+  Menu,
+  Space,
 } from 'antd';
 import Image from 'next/image';
+import { LoginOutlined, UserOutlined } from '@ant-design/icons';
 
-const { Content } = Layout;
+const { Content, Header } = Layout;
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
@@ -141,6 +144,54 @@ export default function AdminPage() {
 
   return (
     <Layout>
+      <Header style={{ background: '#fff', padding: '0 50px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <Image 
+            src="/logo.png" 
+            alt="Dr. Akanksha Agarwal's Mental Healthcare Clinic"
+            width={120}
+            height={60}
+            priority
+            onClick={() => router.push('/')}
+            style={{ cursor: 'pointer' }}
+          />
+        </div>
+        <Menu mode="horizontal" defaultSelectedKeys={['admin']} style={{ flex: 1, justifyContent: 'center' }}>
+          <Menu.Item key="home" onClick={() => router.push('/')}>Home</Menu.Item>
+          <Menu.Item key="about" onClick={() => router.push('/about')}>About</Menu.Item>
+          <Menu.Item key="contact" onClick={() => router.push('/contact')}>Contact</Menu.Item>
+          {user && user.email === 'drakanksha@destinpq.com' && (
+            <Menu.Item key="admin" onClick={() => router.push('/admin')}>Admin</Menu.Item>
+          )}
+        </Menu>
+        <Space>
+          {user ? (
+            <Button onClick={() => { 
+              localStorage.removeItem('access_token');
+              localStorage.removeItem('current_user');
+              router.push('/login');
+            }}>
+              Logout
+            </Button>
+          ) : (
+            <>
+              <Button 
+                icon={<LoginOutlined />}
+                onClick={() => router.push('/login')}
+              >
+                Login
+              </Button>
+              <Button 
+                type="primary"
+                icon={<UserOutlined />}
+                onClick={() => router.push('/signup')}
+              >
+                Sign Up
+              </Button>
+            </>
+          )}
+        </Space>
+      </Header>
       <Content style={{ padding: '20px 50px', maxWidth: 1200, margin: '0 auto' }}>
         <Title level={2} style={{ textAlign: 'center', marginBottom: '30px' }}>
           Manage &apos;About Us&apos; Page Image Descriptions
@@ -162,7 +213,7 @@ export default function AdminPage() {
                     />
                   </div>
                   <Form.Item
-                    name={image.src} // Field name matches imageSrc for easy mapping
+                    name={image.src}
                     label={`Description for ${image.alt}`}
                   >
                     <TextArea 
