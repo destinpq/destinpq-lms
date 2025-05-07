@@ -1054,17 +1054,20 @@ export default function AdminDashboard() {
             size="small" 
             danger
             onClick={() => {
-              console.log('[AdminDashboard] Delete button clicked for workshop ID:', record.id);
-              Modal.confirm({
-                title: 'Confirm Delete',
-                content: `Delete ${record.title}?`,
-                onOk() {
-                  console.log('[AdminDashboard] MODAL CONFIRMED for workshop ID:', record.id);
-                },
-                onCancel() {
-                  console.log('[AdminDashboard] Modal CANCELED for workshop ID:', record.id);
-                }
-              });
+              console.log('[AdminDashboard] Delete button clicked for workshop ID:', record.id); 
+              try {
+                console.log('[AdminDashboard] Attempting to show Modal.info');
+                Modal.info({ 
+                  title: 'Test Info Modal', 
+                  content: 'This is a test of Modal.info.',
+                  onOk() {
+                    console.log('[AdminDashboard] Modal.info OK button clicked.');
+                  }
+                });
+                console.log('[AdminDashboard] Modal.info call completed (no immediate error).');
+              } catch (e) {
+                console.error('[AdminDashboard] Error calling Modal.info:', e);
+              }
             }}
           >
             Delete
