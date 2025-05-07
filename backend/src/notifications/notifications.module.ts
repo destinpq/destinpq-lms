@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config'; // Import ConfigModule if not globally available
-import { EmailService } from './email.service';
+// import { ConfigModule } from '@nestjs/config'; 
+// import { EmailService } from './email.service';
+import { NotificationsController } from './notifications.controller';
 
 @Module({
   imports: [
-    ConfigModule, // EmailService depends on ConfigService
+    // ConfigModule, 
   ],
-  providers: [EmailService],
-  exports: [EmailService],
+  controllers: [NotificationsController],
+  providers: [/* EmailService */],
+  exports: [/* EmailService */],
 })
 export class NotificationsModule {} 
