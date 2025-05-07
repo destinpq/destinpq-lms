@@ -31,6 +31,7 @@ export default function WorkshopPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<string>('');
+  const [displayDateTime, setDisplayDateTime] = useState<string>('');
 
   useEffect(() => {
     if (!loading && !user) {
@@ -62,42 +63,51 @@ export default function WorkshopPage() {
     fetchWorkshopData();
   }, [id, user, loading, router]);
 
-  // Countdown effect
+  // Effect to calculate displayDateTime and countdown
   useEffect(() => {
     if (!workshopData || !workshopData.date || !workshopData.time) {
+      if (workshopData && workshopData.date) { // If only date is present, format that
+        setDisplayDateTime(new Intl.DateTimeFormat('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(workshopData.date)));
+      }
       setCountdown('Time not specified');
       return;
     }
 
-    // Attempt to parse start time from workshopData.time (e.g., "14:00 - 16:00" -> "14:00")
-    const timeParts = workshopData.time.split('-');
-    const startTimeStr = timeParts[0]?.trim(); // Get the first part (start time)
-    if (!startTimeStr) {
-        setCountdown('Start time unclear');
-        return;
+    const dateStr = workshopData.date; // Should be YYYY-MM-DD
+    const timeStr = workshopData.time; // Should be HH:mm - HH:mm
+
+    const startTimeStr = timeStr.split('-')[0]?.trim(); // Get the HH:mm start part
+
+    if (!startTimeStr || !/^[0-2]?[0-9]:[0-5][0-9]$/.test(startTimeStr)) {
+      // If time format is unexpected, display date and raw time string
+      setDisplayDateTime(`${new Intl.DateTimeFormat('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(dateStr))} - ${timeStr}`);
+      setCountdown('Start time unclear');
+      return;
     }
 
-    const targetDateTimeStr = `${workshopData.date}T${startTimeStr}:00`; // Assuming time is HH:mm and needs seconds for full ISO
-    let targetDate = new Date(targetDateTimeStr);
+    // Construct a full ISO-like string that Date constructor can parse reliably with time
+    // e.g., "2025-05-05T16:00:00"
+    const targetDateTimeStr = `${dateStr}T${startTimeStr}:00`;
+    const targetDate = new Date(targetDateTimeStr);
 
-    // Validate parsed date
     if (isNaN(targetDate.getTime())) {
-        // Fallback if direct parsing HH:mm fails, try to construct with today's date just to parse time
-        const [hours, minutes] = startTimeStr.split(':').map(Number);
-        if (hours !== undefined && minutes !== undefined) {
-            const dateObj = new Date(workshopData.date); // Get the correct date part
-            targetDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), hours, minutes);
-        } else {
-            setCountdown('Invalid start time format');
-            return;
-        }
-    }
-    
-    if (isNaN(targetDate.getTime())) {
-        setCountdown('Invalid workshop date/time');
-        return;
+      setDisplayDateTime(`${new Intl.DateTimeFormat('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(dateStr))} - ${timeStr}`);
+      setCountdown('Invalid workshop date/time format');
+      return;
     }
 
+    // Format for display
+    setDisplayDateTime(new Intl.DateTimeFormat('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      // timeZoneName: 'short' // Optional: display timezone
+    }).format(targetDate));
+
+    // Countdown logic (remains largely the same but uses the robust targetDate)
     const interval = setInterval(() => {
       const now = new Date().getTime();
       const distance = targetDate.getTime() - now;
@@ -107,22 +117,19 @@ export default function WorkshopPage() {
         setCountdown('Workshop has started/ended');
         return;
       }
-
       const days = Math.floor(distance / (1000 * 60 * 60 * 24));
       const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
       let countdownStr = '';
       if (days > 0) countdownStr += `${days}d `;
       if (hours > 0 || days > 0) countdownStr += `${hours}h `;
       if (minutes > 0 || hours > 0 || days > 0) countdownStr += `${minutes}m `;
       countdownStr += `${seconds}s`;
-      
       setCountdown(countdownStr.trim() || 'Starting soon...');
     }, 1000);
 
-    return () => clearInterval(interval); // Cleanup interval on component unmount
+    return () => clearInterval(interval);
   }, [workshopData]);
 
   if (loading || isLoading) {
@@ -186,18 +193,18 @@ export default function WorkshopPage() {
         <div style={{ maxWidth: '1000px', width: '100%' }}>
           <Card style={{ marginBottom: 24, textAlign: 'center' }}>
             <Title level={2} style={{ textAlign: 'center' }}>{workshopData.title}</Title>
-            <Space split={<Divider type="vertical" />} style={{ marginBottom: 24, justifyContent: 'center' }}>
+            <Space split={<Divider type="vertical" />} style={{ marginBottom: 24, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Space>
                 <UserOutlined />
                 <Text>{workshopData.instructor}</Text>
               </Space>
               <Space>
                 <CalendarOutlined />
-                <Text>{`${new Intl.DateTimeFormat('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(workshopData.date))} ${workshopData.time ? `- ${workshopData.time}` : ''}`}</Text>
+                <Text>{displayDateTime}</Text>
               </Space>
-              {countdown && (
+              {countdown && workshopData.time && (
                 <Space>
-                  <Text strong> (Starts in: {countdown})</Text>
+                  <Text strong style={{whiteSpace: 'nowrap'}}>(Starts in: {countdown})</Text>
                 </Space>
               )}
               <Space>
