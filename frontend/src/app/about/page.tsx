@@ -23,17 +23,19 @@ import { useRouter } from 'next/navigation';
 const { Header, Content, Footer } = Layout;
 const { Title, Paragraph } = Typography;
 
+// Updated image list - User Images Only
 const images = [
-  { src: '/WhatsApp Image 2025-04-20 at 23.48.24 (1).jpeg', alt: 'Image 1' },
-  { src: '/WhatsApp Image 2025-04-20 at 23.48.24 (2).jpeg', alt: 'Image 2' },
-  { src: '/WhatsApp Image 2025-04-20 at 23.48.24 (3).jpeg', alt: 'Image 3' },
-  { src: '/WhatsApp Image 2025-04-20 at 23.48.24.jpeg', alt: 'Image 4' },
-  { src: '/WhatsApp Image 2025-04-20 at 23.48.25 (1).jpeg', alt: 'Image 5' },
-  { src: '/WhatsApp Image 2025-04-20 at 23.48.25 (2).jpeg', alt: 'Image 6' },
-  { src: '/WhatsApp Image 2025-04-20 at 23.48.25 (3).jpeg', alt: 'Image 7' },
-  { src: '/WhatsApp Image 2025-04-20 at 23.48.25 (4).jpeg', alt: 'Image 8' },
-  { src: '/WhatsApp Image 2025-04-20 at 23.48.25.jpeg', alt: 'Image 9' },
-  { src: '/WhatsApp Image 2025-04-20 at 23.48.26.jpeg', alt: 'Image 10' },
+  { src: '/_DSC0218.JPG', alt: 'DSC0218' },
+  { src: '/20211217_104728.jpg', alt: '20211217 Photo' },
+  { src: '/20240323_141604.jpg', alt: '20240323 Photo' },
+  { src: '/20250420_225705.jpg', alt: '20250420 Photo 1' },
+  { src: '/20250420_230021.jpg', alt: '20250420 Photo 2' },
+  { src: '/DSC_0369.JPG', alt: 'DSC_0369' },
+  { src: '/HYD_2024-01-30_maip2_3.jpg', alt: 'Hyderabad Event' },
+  { src: '/Screenshot_20241107_231018_Drive.jpg', alt: 'Screenshot 1' },
+  { src: '/Screenshot_20241107_231433_Drive.jpg', alt: 'Screenshot 2' },
+  { src: '/SmartSelect_20250320_194225_Samsung Internet.jpg', alt: 'SmartSelect Screenshot' },
+  { src: '/VideoCapture_20240304-223819.jpg', alt: 'Video Capture' },
 ];
 
 interface ImageInfoData {
