@@ -8,7 +8,7 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
+-- SET transaction_timeout = 0; -- Heroku might not support this
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -21,14 +21,14 @@ SET row_security = off;
 -- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
 --
 
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+-- CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 
 
 --
 -- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: 
 --
 
-COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
+-- COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
 
 
 SET default_tablespace = '';
@@ -36,7 +36,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: course; Type: TABLE; Schema: public; Owner: postgres
+-- Name: course; Type: TABLE; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 CREATE TABLE public.course (
@@ -54,10 +54,10 @@ CREATE TABLE public.course (
 );
 
 
-ALTER TABLE public.course OWNER TO postgres;
+ALTER TABLE public.course OWNER TO u9j1vdlg63ms7p;
 
 --
--- Name: course_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: course_id_seq; Type: SEQUENCE; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 CREATE SEQUENCE public.course_id_seq
@@ -69,17 +69,17 @@ CREATE SEQUENCE public.course_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.course_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.course_id_seq OWNER TO u9j1vdlg63ms7p;
 
 --
--- Name: course_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: course_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 ALTER SEQUENCE public.course_id_seq OWNED BY public.course.id;
 
 
 --
--- Name: user; Type: TABLE; Schema: public; Owner: postgres
+-- Name: user; Type: TABLE; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 CREATE TABLE public."user" (
@@ -94,10 +94,10 @@ CREATE TABLE public."user" (
 );
 
 
-ALTER TABLE public."user" OWNER TO postgres;
+ALTER TABLE public."user" OWNER TO u9j1vdlg63ms7p;
 
 --
--- Name: user_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: user_id_seq; Type: SEQUENCE; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 CREATE SEQUENCE public.user_id_seq
@@ -109,17 +109,17 @@ CREATE SEQUENCE public.user_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.user_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.user_id_seq OWNER TO u9j1vdlg63ms7p;
 
 --
--- Name: user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 ALTER SEQUENCE public.user_id_seq OWNED BY public."user".id;
 
 
 --
--- Name: workshop; Type: TABLE; Schema: public; Owner: postgres
+-- Name: workshop; Type: TABLE; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 CREATE TABLE public.workshop (
@@ -139,10 +139,10 @@ CREATE TABLE public.workshop (
 );
 
 
-ALTER TABLE public.workshop OWNER TO postgres;
+ALTER TABLE public.workshop OWNER TO u9j1vdlg63ms7p;
 
 --
--- Name: workshop_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: workshop_id_seq; Type: SEQUENCE; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 CREATE SEQUENCE public.workshop_id_seq
@@ -154,38 +154,38 @@ CREATE SEQUENCE public.workshop_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.workshop_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.workshop_id_seq OWNER TO u9j1vdlg63ms7p;
 
 --
--- Name: workshop_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: workshop_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 ALTER SEQUENCE public.workshop_id_seq OWNED BY public.workshop.id;
 
 
 --
--- Name: course id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: course id; Type: DEFAULT; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 ALTER TABLE ONLY public.course ALTER COLUMN id SET DEFAULT nextval('public.course_id_seq'::regclass);
 
 
 --
--- Name: user id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: user id; Type: DEFAULT; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 ALTER TABLE ONLY public."user" ALTER COLUMN id SET DEFAULT nextval('public.user_id_seq'::regclass);
 
 
 --
--- Name: workshop id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: workshop id; Type: DEFAULT; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 ALTER TABLE ONLY public.workshop ALTER COLUMN id SET DEFAULT nextval('public.workshop_id_seq'::regclass);
 
 
 --
--- Data for Name: course; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: course; Type: TABLE DATA; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 COPY public.course (id, title, instructor, description, duration, students, "imageUrl", syllabus, materials, "createdAt", "updatedAt") FROM stdin;
@@ -195,7 +195,7 @@ COPY public.course (id, title, instructor, description, duration, students, "ima
 
 
 --
--- Data for Name: user; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: user; Type: TABLE DATA; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 COPY public."user" (id, firstname, lastname, email, password, isadmin, createdat, updatedat) FROM stdin;
@@ -219,7 +219,7 @@ COPY public."user" (id, firstname, lastname, email, password, isadmin, createdat
 
 
 --
--- Data for Name: workshop; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: workshop; Type: TABLE DATA; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 COPY public.workshop (id, title, instructor, date, "time", description, duration, "meetingId", participants, materials, agenda, "createdAt", "updatedAt") FROM stdin;
@@ -230,28 +230,28 @@ COPY public.workshop (id, title, instructor, date, "time", description, duration
 
 
 --
--- Name: course_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: course_id_seq; Type: SEQUENCE SET; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 SELECT pg_catalog.setval('public.course_id_seq', 2, true);
 
 
 --
--- Name: user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 SELECT pg_catalog.setval('public.user_id_seq', 16, true);
 
 
 --
--- Name: workshop_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: workshop_id_seq; Type: SEQUENCE SET; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 SELECT pg_catalog.setval('public.workshop_id_seq', 3, true);
 
 
 --
--- Name: course PK_bf95180dd756fd204fb01ce4916; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: course PK_bf95180dd756fd204fb01ce4916; Type: CONSTRAINT; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 ALTER TABLE ONLY public.course
@@ -259,7 +259,7 @@ ALTER TABLE ONLY public.course
 
 
 --
--- Name: user PK_cace4a159ff9f2512dd42373760; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: user PK_cace4a159ff9f2512dd42373760; Type: CONSTRAINT; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 ALTER TABLE ONLY public."user"
@@ -267,7 +267,7 @@ ALTER TABLE ONLY public."user"
 
 
 --
--- Name: workshop PK_e755b83ccf7c711f998012e1c92; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: workshop PK_e755b83ccf7c711f998012e1c92; Type: CONSTRAINT; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 ALTER TABLE ONLY public.workshop
@@ -275,7 +275,7 @@ ALTER TABLE ONLY public.workshop
 
 
 --
--- Name: user UQ_e12875dfb3b1d92d7d7c5377e22; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: user UQ_e12875dfb3b1d92d7d7c5377e22; Type: CONSTRAINT; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
 ALTER TABLE ONLY public."user"
