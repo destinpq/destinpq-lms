@@ -13,20 +13,47 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(loginDto: LoginDto) {
-    const { email, password } = loginDto;
+  private async validateUser(email: string, pass: string): Promise<Omit<User, 'password'> | null> {
+    console.log(`[AuthService.validateUser] Validating: ${email}`);
+    const user = await this.usersService.findByEmail(email, true);
     
-    console.log(`Attempting login for: ${email}`);
-    
-    // ONLY use database validation
-    const user = await this.validateUser(email, password);
+    if (!user) {
+      console.log(`[AuthService.validateUser] User not found: ${email}`);
+      return null;
+    }
+    if (!user.password) {
+        console.log(`[AuthService.validateUser] User ${email} has no password in DB.`);
+        return null;
+    }
+
+    const passwordMatches = await bcrypt.compare(pass, user.password);
+    if (passwordMatches) {
+      console.log(`[AuthService.validateUser] Password for ${email} matches.`);
+      const { password, ...result } = user;
+      return result;
+    }
+    console.log(`[AuthService.validateUser] Password for ${email} does NOT match.`);
+    return null;
+  }
+
+  private generateToken(user: Omit<User, 'password'>) {
+    console.log(`[AuthService.generateToken] Generating token with payload for user.id: ${user.id}, email: ${user.email}, isAdmin: ${user.isAdmin}`);
+    const payload = { sub: user.id, email: user.email, isAdmin: user.isAdmin };
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
+  }
+
+  async login(loginDto: LoginDto): Promise<{ access_token: string }> {
+    console.log(`[AuthService.login] Attempting login for: ${loginDto.email}`);
+    const user = await this.validateUser(loginDto.email, loginDto.password);
 
     if (!user) {
-      console.log(`Authentication failed for ${email}: Invalid credentials or user not found.`);
+      console.log(`[AuthService.login] Authentication failed for ${loginDto.email}.`);
       throw new UnauthorizedException('Invalid credentials');
     }
     
-    console.log(`User ${email} authenticated successfully via database. ID: ${user.id}`);
+    console.log(`[AuthService.login] User ${loginDto.email} authenticated. ID: ${user.id}. Generating token.`);
     return this.generateToken(user);
   }
 
@@ -44,35 +71,7 @@ export class AuthService {
     
     return {
       user: result,
-      ...this.generateToken(newUser),
-    };
-  }
-
-  private async validateUser(email: string, password: string): Promise<User | null> {
-    console.log(`[AuthService] Attempting to validate user: ${email}. Requesting user details from UsersService.`);
-    const user = await this.usersService.findByEmail(email, true);
-    
-    if (!user) {
-      console.log(`[AuthService] UsersService did not find user with email ${email}. Cannot proceed with password validation.`);
-      return null;
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    
-    if (!isPasswordValid) {
-      console.log(`Invalid password for user ${email}.`);
-      return null;
-    }
-    
-    console.log(`Password valid for ${email}.`);
-    return user;
-  }
-
-  private generateToken(user: User) {
-    const payload = { sub: user.id, email: user.email, isAdmin: user.isAdmin };
-    console.log(`Generating token for user ${user.email} (ID: ${user.id}, Admin: ${user.isAdmin})`);
-    return {
-      access_token: this.jwtService.sign(payload),
+      ...this.generateToken(result),
     };
   }
 }
