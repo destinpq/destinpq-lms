@@ -88,24 +88,29 @@ export default function WorkshopPage() {
     // Construct a full ISO-like string that Date constructor can parse reliably with time
     // e.g., "2025-05-05T16:00:00"
     const targetDateTimeStr = `${dateStr}T${startTimeStr}:00`;
+    console.log('[WorkshopPage] Constructed targetDateTimeStr:', targetDateTimeStr);
     const targetDate = new Date(targetDateTimeStr);
+    console.log('[WorkshopPage] Parsed targetDate object:', targetDate);
+    console.log('[WorkshopPage] targetDate.getTime():', targetDate.getTime()); // Check if NaN
 
     if (isNaN(targetDate.getTime())) {
       setDisplayDateTime(`${new Intl.DateTimeFormat('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(dateStr))} - ${timeStr}`);
-      setCountdown('Invalid workshop date/time format');
+      setCountdown('Invalid workshop date/time format for Date parsing');
       return;
     }
 
     // Format for display
-    setDisplayDateTime(new Intl.DateTimeFormat('en-US', {
+    const formattedDisplayDateTime = new Intl.DateTimeFormat('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      // timeZoneName: 'short' // Optional: display timezone
-    }).format(targetDate));
+      // timeZone: 'Asia/Kolkata', // Example: Consider specifying a timezone
+    }).format(targetDate);
+    console.log('[WorkshopPage] Formatted displayDateTime:', formattedDisplayDateTime);
+    setDisplayDateTime(formattedDisplayDateTime);
 
     // Countdown logic (remains largely the same but uses the robust targetDate)
     const interval = setInterval(() => {
