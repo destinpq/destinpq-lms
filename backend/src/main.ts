@@ -6,24 +6,24 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  
+
   // Serve static files
   app.useStaticAssets(join(__dirname, '..', 'public'));
-  
+
   // Set up allowed origins with environment variable
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:22000';
+  const frontendUrl = process.env.FRONTEND_URL || 'https://www.drakanksha.co/';
   const allowedOrigins = [
-    'http://localhost:23000', 
-    'http://127.0.0.1:23000', 
-    'http://localhost:22000', 
-    'http://127.0.0.1:22000', 
-    'https://www.drakanksha.co', 
+    'http://localhost:23000',
+    'http://127.0.0.1:23000',
+    'https://www.drakanksha.co/',
+    'http://127.0.0.1:22000',
+    'https://www.drakanksha.co',
     'http://www.drakanksha.co',
-    frontendUrl
+    frontendUrl,
   ];
-  
+
   console.log('CORS: Allowing origins:', allowedOrigins);
-  
+
   // Enable CORS
   app.enableCors({
     origin: allowedOrigins,
@@ -31,19 +31,19 @@ async function bootstrap() {
     credentials: true,
     allowedHeaders: 'Content-Type, Authorization, X-Requested-With',
   });
-  
+
   // Setup global validation pipe
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
-  
+
   // Add global prefix to match frontend expectations
   // Note: Health check endpoints will still be accessible at the root
   app.setGlobalPrefix('lms', {
     exclude: ['health', 'healthz'],
   });
-  
+
   // Get port from environment variable or use default 15001
   const port = process.env.PORT || 15001;
-  
+
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}`);
   console.log(`Frontend URL: ${frontendUrl}`);
