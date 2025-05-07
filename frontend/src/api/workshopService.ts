@@ -164,23 +164,24 @@ export const workshopService = {
   // --- Workshop CRUD --- //
   async getAllWorkshops(): Promise<Workshop[]> {
     const token = localStorage.getItem('access_token');
-    // if (!token) { // Allow public listing of workshops if applicable, or keep token check
-    //   console.warn('[workshopService.getAllWorkshops] No auth token found');
-    //   return [];
-    // }
-    // const formattedToken = formatTokenForAPI(token);
-    console.log('[workshopService.getAllWorkshops] Attempting to fetch from API...');
+    if (!token) {
+      console.warn('[workshopService.getAllWorkshops] No auth token found, cannot fetch workshops.');
+      return [];
+    }
+    const formattedToken = formatTokenForAPI(token);
+    console.log('[workshopService.getAllWorkshops] Attempting to fetch from API with token...');
     try {
       const response = await fetch(`${API_URL}/workshops`, {
         method: 'GET',
         headers: {
-          // 'Authorization': formattedToken, // Remove or keep based on whether this needs auth
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
-        cache: 'no-store', // <<< ADDED CACHE CONTROL
+        cache: 'no-store',
       });
       if (!response.ok) {
-        console.warn(`[workshopService.getAllWorkshops] API responded with ${response.status}`);
+        const errorText = await response.text();
+        console.warn(`[workshopService.getAllWorkshops] API responded with ${response.status}: ${errorText}`);
         return [];
       }
       const data = await response.json();
