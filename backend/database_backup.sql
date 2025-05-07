@@ -84,13 +84,13 @@ ALTER SEQUENCE public.course_id_seq OWNED BY public.course.id;
 
 CREATE TABLE public."user" (
     id integer NOT NULL,
-    firstname character varying NOT NULL,
-    lastname character varying NOT NULL,
+    "firstName" character varying NOT NULL,
+    "lastName" character varying NOT NULL,
     email character varying NOT NULL,
     password character varying NOT NULL,
-    isadmin boolean DEFAULT false NOT NULL,
-    createdat timestamp without time zone DEFAULT now() NOT NULL,
-    updatedat timestamp without time zone DEFAULT now() NOT NULL
+    "isAdmin" boolean DEFAULT false NOT NULL,
+    "createdAt" timestamp without time zone DEFAULT now() NOT NULL,
+    "updatedAt" timestamp without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -198,7 +198,7 @@ COPY public.course (id, title, instructor, description, duration, students, "ima
 -- Data for Name: user; Type: TABLE DATA; Schema: public; Owner: u9j1vdlg63ms7p
 --
 
-COPY public."user" (id, firstname, lastname, email, password, isadmin, createdat, updatedat) FROM stdin;
+COPY public."user" (id, "firstName", "lastName", email, password, "isAdmin", "createdAt", "updatedAt") FROM stdin;
 1	Admin	User	admin@example.com	$2b$10$g44TLZZgOR97Kb4avmtODusZCPnQOrwmr/IUF7uK0FBfKulYqnylK	t	2025-05-07 04:02:35.366901	2025-05-07 04:02:35.366901
 4	Pratik	Khanapurkar	khanapurkarpratik@gmail.com	$2b$10$XZhgUAQkjIKdcvQlYFlFfeH3VVtxjZx59KmM3Dgqo8WghMMNFJ6sq	f	2025-05-07 04:06:17.091287	2025-05-07 04:06:17.091287
 6	Unnati	Mittal	ump52911@gmail.com	$2b$10$1bpaZHA8zz/4ZgT1I58xaeaTWkpEomC2dnKOt6qax49p5GoBHTTR6	f	2025-05-07 04:06:30.841125	2025-05-07 04:06:30.841125

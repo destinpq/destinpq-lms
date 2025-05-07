@@ -11,10 +11,10 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'firstname' })
+  @Column()
   firstName: string;
 
-  @Column({ name: 'lastname' })
+  @Column()
   lastName: string;
 
   @Column({ unique: true })
@@ -23,12 +23,12 @@ export class User {
   @Column({ select: false })
   password: string;
 
-  @Column({ default: false, name: 'isadmin' })
+  @Column({ default: false })
   isAdmin: boolean;
 
-  @CreateDateColumn({ name: 'createdat' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updatedat' })
+  @UpdateDateColumn()
   updatedAt: Date;
 } 
