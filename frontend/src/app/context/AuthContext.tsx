@@ -90,53 +90,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (!token) {
         console.log('No token found, setting loading to false');
+        setUser(null); // Ensure user is null if no token
+        localStorage.removeItem('current_user'); // Clear any orphaned user data
         setLoading(false);
         return;
       }
       
       try {
-        // Try to load saved user data first 
+        // Try to load saved user data first if it exists
         if (userData) {
           try {
             const parsedUser = JSON.parse(userData);
             setUser(parsedUser);
           } catch (err) {
-            console.error('Error parsing user data:', err);
+            console.error('Error parsing user data from localStorage:', err);
+            localStorage.removeItem('current_user'); // Clear corrupted data
           }
         }
         
-        // Try to verify with backend, but don't clear storage if it fails
+        // ALWAYS try to verify with backend and fetch fresh profile
         try {
+          console.log('[AuthContext] Attempting to fetch user profile from backend...');
           const profile = await authService.getProfile();
           setUser(profile);
           localStorage.setItem('current_user', JSON.stringify(profile));
+          console.log('[AuthContext] Profile fetched successfully, user set:', profile);
         } catch (profileError) {
-          console.error('Error fetching profile from backend:', profileError);
-          
-          // Don't clear auth data, just use what we have from localStorage or token
-          if (!userData && token) {
-            // If no user data in localStorage but we have a token, try to extract info from token
-            const decodedToken = decodeJwt(token);
-            if (decodedToken) {
-              const tokenUser = {
-                id: decodedToken.sub,
-                email: decodedToken.email,
-                firstName: decodedToken.email.split('@')[0],
-                lastName: 'User',
-                isAdmin: decodedToken.isAdmin
-              };
-              setUser(tokenUser);
-              localStorage.setItem('current_user', JSON.stringify(tokenUser));
-              console.log('Using user data extracted from token');
-            }
-          }
+          console.error('[AuthContext] Error fetching profile from backend:', profileError);
+          // If profile fetch fails, the token is likely invalid or expired.
+          // Clear all auth-related localStorage and set user to null.
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('current_user');
+          setUser(null);
+          console.log('[AuthContext] Cleared stale auth data due to profile fetch error.');
         }
       } catch (err) {
-        console.error('Error authenticating user:', err);
-        // Don't clear user if we already set it from localStorage
-        if (!user) {
-          setUser(null);
-        }
+        console.error('[AuthContext] General error during initial authentication:', err);
+        // Fallback for other unexpected errors during the process
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('current_user');
+        setUser(null);
       } finally {
         setLoading(false);
       }

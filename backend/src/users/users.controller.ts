@@ -38,14 +38,26 @@ export class UsersController {
   @Get('profile/me')
   async getUserProfile(@Request() req: any) {
     try {
-      console.log('Getting user profile from token:', req.user);
+      console.log('[UC] req.user raw:', req.user);
+      console.log('[UC] req.user stringified:', JSON.stringify(req.user));
       
-      if (!req.user || !req.user.sub) {
-        throw new HttpException('Invalid authentication token', HttpStatus.UNAUTHORIZED);
+      const condition1_isReqUserFalsy = !req.user;
+      const condition2_isReqUserIdUndefined = typeof req.user?.id === 'undefined'; // Optional chaining for safety
+      
+      console.log(`[UC] Condition Check: !req.user is ${condition1_isReqUserFalsy}`);
+      console.log(`[UC] Condition Check: typeof req.user?.id === \'undefined\' is ${condition2_isReqUserIdUndefined}`);
+      console.log(`[UC] req.user?.id value: ${req.user?.id}, typeof req.user?.id: ${typeof req.user?.id}`);
+
+      // The req.user object is what JwtStrategy.validate returns.
+      // It should have an 'id' property, not 'sub'.
+      if (condition1_isReqUserFalsy || condition2_isReqUserIdUndefined) { 
+        console.error('[UC] Failing condition! req.user invalid or req.user.id is missing.');
+        throw new HttpException('Invalid authentication token - user data not found in request', HttpStatus.UNAUTHORIZED);
       }
       
-      // Get user from database using ID from JWT token
-      const userId = req.user.sub;
+      // Get user from database using ID from the validated req.user object
+      const userId = req.user.id;
+      console.log(`[UsersController] Fetching full profile for user ID: ${userId}`);
       const user = await this.usersService.findOne(userId);
       
       if (!user) {

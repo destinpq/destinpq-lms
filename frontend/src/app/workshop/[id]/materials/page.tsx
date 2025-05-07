@@ -8,100 +8,74 @@ import {
   Card, 
   Button, 
   List, 
-  Space, 
-  Divider,
   Spin,
   Alert
 } from 'antd';
 import { 
   ArrowLeftOutlined, 
   FilePdfOutlined, 
-  FileWordOutlined, 
-  FileExcelOutlined,
-  VideoCameraOutlined,
   DownloadOutlined
 } from '@ant-design/icons';
 import { useAuth } from '@/app/context/AuthContext';
+import { workshopService, Workshop } from '@/api/workshopService';
 
 const { Header, Content } = Layout;
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
 interface MaterialItem {
-  id: number;
-  title: string;
-  description: string;
-  type: string;
-  size?: string;
-  duration?: string;
-  date: string;
+  id?: number;
+  name: string;
+  url: string;
 }
 
 export default function WorkshopMaterialsPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { user, loading } = useAuth();
-  const [materials, setMaterials] = useState<MaterialItem[]>([]);
-  const [workshopTitle, setWorkshopTitle] = useState('');
+  const { user, loading: authLoading } = useAuth();
+  const [workshop, setWorkshop] = useState<Workshop | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       router.push('/login');
       return;
     }
 
-    // In a real app, fetch materials from your API
-    // For demo purposes, we'll simulate with mock data
-    setTimeout(() => {
-      if (id === 'adv-cognitive-techniques') {
-        setWorkshopTitle('Advanced Cognitive Techniques');
-        setMaterials([
-          { 
-            id: 1, 
-            title: 'Workshop Slides', 
-            description: 'Complete presentation slides for the Advanced Cognitive Techniques workshop.',
-            type: 'pdf', 
-            size: '2.4 MB', 
-            date: '2025-05-01'
-          },
-          { 
-            id: 2, 
-            title: 'Required Reading: Cognitive Restructuring Techniques', 
-            description: 'A comprehensive overview of cognitive restructuring techniques from leading psychology journals.',
-            type: 'pdf', 
-            size: '1.8 MB', 
-            date: '2025-05-01'
-          },
-          { 
-            id: 3, 
-            title: 'Worksheet: Cognitive Distortion Identification', 
-            description: 'Practice worksheet for identifying common cognitive distortions.',
-            type: 'docx', 
-            size: '540 KB', 
-            date: '2025-05-01'
-          },
-          { 
-            id: 4, 
-            title: 'Pre-workshop Video: Introduction to Cognitive Techniques', 
-            description: 'A 15-minute introduction video to prepare you for the workshop.',
-            type: 'video', 
-            duration: '15:24', 
-            date: '2025-05-01'
+    if (user && id) {
+      const workshopId = Array.isArray(id) ? id[0] : id;
+      const fetchWorkshopDetails = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+          console.log(`[WorkshopMaterialsPage] Fetching workshop details for ID: ${workshopId}`);
+          const data = await workshopService.getWorkshopById(workshopId);
+          if (data) {
+            console.log('[WorkshopMaterialsPage] Workshop data fetched:', data);
+            setWorkshop(data);
+          } else {
+            console.log(`[WorkshopMaterialsPage] Workshop with ID ${workshopId} not found.`);
+            setError('Workshop not found or could not be loaded');
           }
-        ]);
-      } else {
-        setError('Workshop materials not found');
-      }
+        } catch (err) {
+          console.error('[WorkshopMaterialsPage] Error fetching workshop data:', err);
+          setError('Failed to load workshop materials.');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchWorkshopDetails();
+    } else if (!id && !authLoading) {
+      setError('Workshop ID is missing from URL.');
       setIsLoading(false);
-    }, 1000);
-  }, [id, user, loading, router]);
+    }
+  }, [id, user, authLoading, router]);
 
-  if (loading || isLoading) {
+  if (authLoading || isLoading) {
     return (
       <Layout style={{ minHeight: '100vh' }}>
         <Content style={{ padding: '50px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Spin size="large" />
+          <Spin size="large" tip="Loading workshop materials..." />
         </Content>
       </Layout>
     );
@@ -112,14 +86,14 @@ export default function WorkshopMaterialsPage() {
       <Layout style={{ minHeight: '100vh' }}>
         <Content style={{ padding: '50px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <Alert
-            message="Error"
+            message="Error Loading Materials"
             description={error}
             type="error"
             showIcon
             style={{ maxWidth: '500px', width: '100%' }}
             action={
-              <Button size="small" onClick={() => router.push('/student/dashboard')}>
-                Return to Dashboard
+              <Button size="small" onClick={() => router.push(id ? `/workshop/${Array.isArray(id) ? id[0] : id}` : '/student/dashboard')}>
+                Back to Workshop Details
               </Button>
             }
           />
@@ -128,20 +102,39 @@ export default function WorkshopMaterialsPage() {
     );
   }
 
-  const getIconByType = (type: string) => {
-    switch(type) {
-      case 'pdf':
-        return <FilePdfOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />;
-      case 'docx':
-        return <FileWordOutlined style={{ fontSize: 24, color: '#1890ff' }} />;
-      case 'xlsx':
-        return <FileExcelOutlined style={{ fontSize: 24, color: '#52c41a' }} />;
-      case 'video':
-        return <VideoCameraOutlined style={{ fontSize: 24, color: '#722ed1' }} />;
-      default:
-        return <FilePdfOutlined style={{ fontSize: 24 }} />;
-    }
-  };
+  if (!workshop || !workshop.materials || workshop.materials.length === 0) {
+    return (
+      <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
+        <Header style={{ 
+          background: '#fff', 
+          padding: '0 20px', 
+          display: 'flex', 
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <div style={{ maxWidth: '1000px', width: '100%', display: 'flex', alignItems: 'center' }}>
+            <Button 
+              icon={<ArrowLeftOutlined />} 
+              type="text"
+              onClick={() => router.push(id ? `/workshop/${Array.isArray(id) ? id[0] : id}` : '/student/dashboard')}
+              style={{ marginRight: '20px' }}
+            >
+              Back to Workshop
+            </Button>
+            <Title level={4} style={{ margin: 0 }}>{workshop?.title || 'Workshop'} - Preparatory Materials</Title>
+          </div>
+        </Header>
+        
+        <Content style={{ padding: '24px', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ maxWidth: '1000px', width: '100%' }}>
+            <Card>
+              <Text>No materials available for this workshop.</Text>
+            </Card>
+          </div>
+        </Content>
+      </Layout>
+    );
+  }
 
   return (
     <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
@@ -156,84 +149,49 @@ export default function WorkshopMaterialsPage() {
           <Button 
             icon={<ArrowLeftOutlined />} 
             type="text"
-            onClick={() => router.push(`/workshop/${id}`)}
+            onClick={() => router.push(id ? `/workshop/${Array.isArray(id) ? id[0] : id}` : '/student/dashboard')}
             style={{ marginRight: '20px' }}
           >
             Back to Workshop
           </Button>
-          <Title level={4} style={{ margin: 0 }}>Preparatory Materials</Title>
+          <Title level={4} style={{ margin: 0 }}>{workshop?.title || 'Workshop'} - Preparatory Materials</Title>
         </div>
       </Header>
       
       <Content style={{ padding: '24px', display: 'flex', justifyContent: 'center' }}>
         <div style={{ maxWidth: '1000px', width: '100%' }}>
-          <Card style={{ marginBottom: 24, textAlign: 'center' }}>
-            <Title level={2} style={{ textAlign: 'center' }}>{workshopTitle}</Title>
-            <Paragraph style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
-              Please review these materials before attending the workshop. These resources will help you prepare 
-              and get the most out of the session.
-            </Paragraph>
-          </Card>
-          
-          <List
-            itemLayout="vertical"
-            dataSource={materials}
-            style={{ 
-              background: 'white', 
-              padding: '16px 24px', 
-              borderRadius: '8px',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-            }}
-            header={
-              <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-                <Title level={4} style={{ margin: 0 }}>Available Materials</Title>
-              </div>
-            }
-            renderItem={item => (
-              <List.Item
-                key={item.id}
-                style={{
-                  background: materials.indexOf(item) % 2 === 0 ? '#f9f9f9' : 'white',
-                  padding: '16px',
-                  borderRadius: '8px',
-                  marginBottom: '8px',
-                  textAlign: 'center'
-                }}
-                actions={[
-                  <div key="download" style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: '8px' }}>
-                    <Button type="primary" icon={<DownloadOutlined />}>
-                      Download
+          {isLoading ? (
+            <div style={{ textAlign: 'center' }}><Spin tip="Loading materials..." /></div>
+          ) : error ? (
+            <Alert message="Error" description={error} type="error" showIcon />
+          ) : workshop && workshop.materials && workshop.materials.length > 0 ? (
+            <List
+              itemLayout="horizontal"
+              dataSource={workshop.materials as MaterialItem[]}
+              style={{ background: 'white', padding: '16px 24px', borderRadius: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+              header={<div style={{ textAlign: 'center', marginBottom: '16px' }}><Title level={4} style={{ margin: 0 }}>Available Materials</Title></div>}
+              renderItem={(material, index) => (
+                <List.Item
+                  key={material.name + index}
+                  actions={[
+                    <Button type="primary" icon={<DownloadOutlined />} href={material.url} target="_blank" key="download">
+                      Download / View
                     </Button>
-                  </div>
-                ]}
-              >
-                <List.Item.Meta
-                  avatar={
-                    <div style={{ display: 'flex', justifyContent: 'center' }}>
-                      {getIconByType(item.type)}
-                    </div>
-                  }
-                  title={<div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}>{item.title}</div>}
-                  description={
-                    <Space style={{ display: 'flex', justifyContent: 'center' }} split={<Divider type="vertical" />}>
-                      <Text type="secondary">
-                        {item.type.toUpperCase()}
-                      </Text>
-                      <Text type="secondary">
-                        {item.size || item.duration}
-                      </Text>
-                      <Text type="secondary">
-                        Added: {item.date}
-                      </Text>
-                    </Space>
-                  }
-                />
-                <Paragraph style={{ textAlign: 'center', maxWidth: '800px', margin: '12px auto 0' }}>
-                  {item.description}
-                </Paragraph>
-              </List.Item>
-            )}
-          />
+                  ]}
+                >
+                  <List.Item.Meta
+                    avatar={<FilePdfOutlined style={{ fontSize: 24, color: '#1890ff' }} />}
+                    title={material.name}
+                    description={<a href={material.url} target="_blank" rel="noopener noreferrer">{material.url}</a>}
+                  />
+                </List.Item>
+              )}
+            />
+          ) : (
+            <Card>
+              <Text>No materials available for this workshop.</Text>
+            </Card>
+          )}
         </div>
       </Content>
     </Layout>

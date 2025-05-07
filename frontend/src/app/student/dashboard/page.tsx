@@ -1,29 +1,29 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
-import Link from 'next/link';
+// import Link from 'next/link'; // Removing Link
 import { 
   Badge, 
   Button, 
   Card, 
   List, 
   Avatar, 
-  Input, 
+  // Input, // Removing Input
   Tag, 
   Layout, 
   Typography, 
   Row, 
   Col, 
-  Grid, 
+  // Grid, // Removing Grid
   Space, 
-  Menu, 
+  // Menu, // Removing Menu
   Tabs, 
-  Progress, 
+  // Progress, // Removing Progress
   Spin,
-  Divider,
-  Statistic 
+  // Divider, // Removing Divider
+  // Statistic // Removing Statistic
 } from 'antd';
 import { 
   MessageOutlined, 
@@ -31,37 +31,27 @@ import {
   BookOutlined, 
   BellOutlined, 
   LogoutOutlined, 
-  TrophyOutlined,
-  BookFilled,
-  RightOutlined
+  // TrophyOutlined, // Removing TrophyOutlined
+  // BookFilled, // Removing BookFilled
+  // RightOutlined // Removing RightOutlined
 } from '@ant-design/icons';
-import { workshopService, Workshop, Session, Homework, Message } from '@/api/workshopService';
+import { workshopService, Workshop, Homework, Message } from '@/api/workshopService';
 
 const { Header, Content } = Layout;
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 const { TabPane } = Tabs;
-const { useBreakpoint } = Grid;
+// const { useBreakpoint } = Grid; // Removing useBreakpoint
 
 export default function StudentDashboard() {
   const { user, loading, signout } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [timeLeft, setTimeLeft] = useState({
-    days: 3,
-    hours: 23,
-    minutes: 59,
-    seconds: 59
-  });
   
   // API data states
-  const [nextWorkshop, setNextWorkshop] = useState<Workshop | null>(null);
-  const [upcomingSessions, setUpcomingSessions] = useState<Session[]>([]);
+  const [allWorkshopsList, setAllWorkshopsList] = useState<Workshop[]>([]);
   const [pendingHomework, setPendingHomework] = useState<Homework[]>([]);
   const [recentMessages, setRecentMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Store the target date for the countdown
-  const targetDateRef = useRef<Date | null>(null);
   
   // Fetch data from API
   useEffect(() => {
@@ -70,18 +60,9 @@ export default function StudentDashboard() {
     const fetchDashboardData = async () => {
       setIsLoading(true);
       try {
-        // Fetch next workshop
-        const workshopData = await workshopService.getNextWorkshop();
-        setNextWorkshop(workshopData);
-        
-        // Set the target date for countdown timer
-        if (workshopData?.date) {
-          targetDateRef.current = new Date(workshopData.date);
-        }
-        
-        // Fetch upcoming sessions
-        const sessionsData = await workshopService.getUpcomingSessions();
-        setUpcomingSessions(sessionsData);
+        // Fetch ALL workshops
+        const workshopsData = await workshopService.getAllWorkshops();
+        setAllWorkshopsList(workshopsData || []);
         
         // Fetch pending homework
         const homeworkData = await workshopService.getPendingHomework();
@@ -92,6 +73,10 @@ export default function StudentDashboard() {
         setRecentMessages(messagesData);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        // Set all to empty on a general error to avoid stale data
+        setAllWorkshopsList([]);
+        setPendingHomework([]);
+        setRecentMessages([]);
       } finally {
         setIsLoading(false);
       }
@@ -129,56 +114,6 @@ export default function StudentDashboard() {
       }
     }
   }, [user, loading, router]);
-  
-  // Countdown timer for next workshop
-  useEffect(() => {
-    if (nextWorkshop) {
-      const updateTimer = () => {
-        const now = new Date();
-        const workshopDate = new Date(nextWorkshop.date);
-        
-        // For demo, ensure the workshop is always in the future
-        if (workshopDate < now) {
-          // Set the workshop to be 3 days from now for demo purposes
-          const futureDate = new Date();
-          futureDate.setDate(futureDate.getDate() + 3);
-          futureDate.setHours(5, 30, 0); // 5:30 AM
-          
-          console.log(`Workshop date ${workshopDate.toISOString()} is in the past, using future date: ${futureDate.toISOString()}`);
-          
-          // Calculate time difference
-          const difference = futureDate.getTime() - now.getTime();
-          
-          // Calculate days, hours, minutes, seconds
-          const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-          
-          setTimeLeft({ days, hours, minutes, seconds });
-        } else {
-          // Workshop is in the future, calculate time normally
-          const difference = workshopDate.getTime() - now.getTime();
-          
-          // Calculate days, hours, minutes, seconds
-          const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-          
-          setTimeLeft({ days, hours, minutes, seconds });
-        }
-      };
-      
-      // Update immediately
-      updateTimer();
-      
-      // Update every second
-      const timer = setInterval(updateTimer, 1000);
-      
-      return () => clearInterval(timer);
-    }
-  }, [nextWorkshop]);
 
   if (loading || isLoading) {
     return (
@@ -237,78 +172,41 @@ export default function StudentDashboard() {
           <TabPane tab="Dashboard" key="dashboard">
             <Row gutter={[24, 24]}>
               <Col xs={24} lg={16}>
-                {/* Next Workshop Card */}
-                {nextWorkshop ? (
-                  <Card 
-                    title={
-                      <Space>
-                        <ClockCircleOutlined style={{ color: '#1890ff' }} />
-                        <span>Next Workshop</span>
-                      </Space>
-                    }
-                    style={{ marginBottom: 24 }}
-                  >
-                    <Title level={4} style={{ marginTop: 0 }}>{nextWorkshop.title}</Title>
-                    <Paragraph>
-                      <strong>Instructor:</strong> {nextWorkshop.instructor} <br />
-                      <strong>Date:</strong> {formatDate(nextWorkshop.date)}
-                    </Paragraph>
-                    
-                    <Row justify="space-between" align="middle">
-                      <Button 
-                        type="primary" 
-                        onClick={() => router.push(`/workshop/${nextWorkshop.id}`)}
-                      >
-                        Join Workshop
-                      </Button>
-                      <Button 
-                        type="link" 
-                        onClick={() => router.push(`/workshop/${nextWorkshop.id}/materials`)}
-                      >
-                        View preparatory materials
-                      </Button>
-                    </Row>
-                  </Card>
-                ) : (
-                  <Card style={{ marginBottom: 24, textAlign: 'center' }}>
-                    <Text>No upcoming workshops scheduled</Text>
-                  </Card>
-                )}
-                
-                {/* Upcoming Sessions */}
+                {/* Renamed and Updated to show All Available Workshops */}
                 <Card 
                   title={
                     <Space>
                       <ClockCircleOutlined style={{ color: '#1890ff' }} />
-                      <span>Upcoming Live Sessions</span>
+                      <span>Available Workshops</span>
                     </Space>
                   }
                 >
-                  {upcomingSessions.length > 0 ? (
+                  {allWorkshopsList.length > 0 ? (
                     <List
                       itemLayout="horizontal"
-                      dataSource={upcomingSessions}
-                      renderItem={item => (
+                      dataSource={allWorkshopsList}
+                      renderItem={(item: Workshop) => ( // item is now of type Workshop
                         <List.Item
-                          key={item.id}
+                          key={item.id.toString()} // Use item.id, ensure it's a string for key
                           actions={[
                             <Button 
                               type="primary" 
                               size="small" 
                               key="join" 
-                              onClick={() => router.push(item.link)}
+                              onClick={() => router.push(`/workshop/${item.id}`)} // Link to workshop detail page
                             >
-                              Join
+                              View Details / Join
                             </Button>
                           ]}
                         >
                           <List.Item.Meta
-                            title={<div onClick={() => router.push(item.link)} style={{ cursor: 'pointer' }}>{item.title}</div>}
+                            title={<div onClick={() => router.push(`/workshop/${item.id}`)} style={{ cursor: 'pointer' }}>{item.title}</div>}
                             description={
                               <>
-                                <Text strong>{item.course}</Text><br />
+                                {/* Display Workshop properties directly */}
                                 <Text>Instructor: {item.instructor}</Text><br />
-                                <Text>{formatDate(item.date)}</Text>
+                                <Text>Date: {formatDate(item.date)}</Text><br />
+                                {item.description && <Text type="secondary">{item.description}</Text>}
                               </>
                             }
                           />
@@ -317,7 +215,7 @@ export default function StudentDashboard() {
                     />
                   ) : (
                     <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                      <Text>No upcoming sessions</Text>
+                      <Text>No workshops currently available.</Text>
                     </div>
                   )}
                 </Card>
@@ -427,308 +325,29 @@ export default function StudentDashboard() {
 
           <TabPane tab="My Courses" key="courses">
             <Title level={4}>My Enrolled Courses</Title>
-            <Row gutter={[24, 24]}>
-              <Col xs={24} sm={12} lg={8}>
-                <Card 
-                  cover={<div style={{ height: 160, background: '#f5f5f5' }}></div>}
-                  hoverable
-                >
-                  <Card.Meta 
-                    title="Cognitive Behavioral Techniques" 
-                    description={
-                      <>
-                        <div style={{ marginTop: 16, marginBottom: 8 }}>
-                          <Progress percent={33} size="small" />
-                        </div>
-                        <Text type="secondary">Progress: 33%</Text>
-                        <div style={{ marginTop: 16 }}>
-                          <Button 
-                            type="link" 
-                            href="/course/sample-course-id"
-                            style={{ padding: 0 }}
-                          >
-                            Continue Learning <RightOutlined />
-                          </Button>
-                        </div>
-                      </>
-                    }
-                  />
-                </Card>
-              </Col>
-              
-              <Col xs={24} sm={12} lg={8}>
-                <Card 
-                  cover={<div style={{ height: 160, background: '#f5f5f5' }}></div>}
-                  hoverable
-                >
-                  <Card.Meta 
-                    title="Neuroscience Fundamentals" 
-                    description={
-                      <>
-                        <div style={{ marginTop: 16, marginBottom: 8 }}>
-                          <Progress percent={50} size="small" />
-                        </div>
-                        <Text type="secondary">Progress: 50%</Text>
-                        <div style={{ marginTop: 16 }}>
-                          <Button 
-                            type="link" 
-                            href="/course/sample-course-id-2"
-                            style={{ padding: 0 }}
-                          >
-                            Continue Learning <RightOutlined />
-                          </Button>
-                        </div>
-                      </>
-                    }
-                  />
-                </Card>
-              </Col>
-            </Row>
+            <Card>
+              <Text>Your enrolled courses will appear here. (Data to be fetched from API)</Text>
+            </Card>
           </TabPane>
 
           <TabPane tab="Achievements" key="achievements">
             <Title level={4}>My Achievements</Title>
             <Card>
-              <Row align="middle" justify="space-between" style={{ marginBottom: 24 }}>
-                <Col>
-                  <Title level={4} style={{ margin: 0 }}>Your Learning Points</Title>
-                  <Title level={2} style={{ margin: '8px 0 0', color: '#1890ff' }}>450</Title>
-                </Col>
-                <Col>
-                  <Tag color="blue" style={{ fontSize: 14, padding: '4px 12px' }}>
-                    Level 3 Learner
-                  </Tag>
-                </Col>
-              </Row>
-              
-              <Divider />
-              
-              <Title level={4}>Badges Earned</Title>
-              <Row gutter={[16, 16]}>
-                <Col xs={12} sm={6}>
-                  <Card>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ 
-                        width: 64, 
-                        height: 64, 
-                        borderRadius: '50%', 
-                        background: '#fffbe6',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        margin: '0 auto 16px',
-                        fontSize: 32
-                      }}>
-                        🏆
-                      </div>
-                      <Text strong>First Quiz Completed</Text>
-                    </div>
-                  </Card>
-                </Col>
-                <Col xs={12} sm={6}>
-                  <Card>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ 
-                        width: 64, 
-                        height: 64, 
-                        borderRadius: '50%', 
-                        background: '#f6ffed',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        margin: '0 auto 16px',
-                        fontSize: 32
-                      }}>
-                        📚
-                      </div>
-                      <Text strong>Active Learner</Text>
-                    </div>
-                  </Card>
-                </Col>
-                <Col xs={12} sm={6}>
-                  <Card style={{ opacity: 0.4 }}>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ 
-                        width: 64, 
-                        height: 64, 
-                        borderRadius: '50%', 
-                        background: '#f9f0ff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        margin: '0 auto 16px',
-                        fontSize: 32
-                      }}>
-                        🧠
-                      </div>
-                      <Text strong>Neuroscience Expert</Text>
-                    </div>
-                  </Card>
-                </Col>
-                <Col xs={12} sm={6}>
-                  <Card style={{ opacity: 0.4 }}>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ 
-                        width: 64, 
-                        height: 64, 
-                        borderRadius: '50%', 
-                        background: '#e6f7ff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        margin: '0 auto 16px',
-                        fontSize: 32
-                      }}>
-                        💬
-                      </div>
-                      <Text strong>Discussion Leader</Text>
-                    </div>
-                  </Card>
-                </Col>
-              </Row>
+              <Text>Your achievements and badges will be displayed here. (Data to be fetched from API)</Text>
             </Card>
           </TabPane>
 
           <TabPane tab="Certificates" key="certificate">
             <Title level={4}>My Certificates</Title>
             <Card>
-              <Title level={4}>You haven&apos;t earned any certificates yet</Title>
-              <Paragraph>
-                Complete a course to earn your first certificate. Certificates are awarded when you finish
-                all modules and pass the required assessments.
-              </Paragraph>
-              <Button 
-                type="link" 
-                onClick={() => setActiveTab('courses')}
-                style={{ paddingLeft: 0 }}
-              >
-                Go to my courses <RightOutlined />
-              </Button>
+              <Text>Your earned certificates will be shown here. (Data to be fetched from API)</Text>
             </Card>
           </TabPane>
           
           <TabPane tab="Messages" key="messages">
             <Title level={4}>Messages</Title>
-            <Card bodyStyle={{ padding: 0 }}>
-              <Row>
-                {/* Chat List Sidebar */}
-                <Col xs={24} lg={8} style={{ borderRight: '1px solid #f0f0f0' }}>
-                  <div style={{ padding: 16, borderBottom: '1px solid #f0f0f0' }}>
-                    <Input.Search placeholder="Search messages..." />
-                  </div>
-                  <List
-                    dataSource={[
-                      {
-                        id: 1,
-                        name: 'Dr. Sarah Johnson',
-                        avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-                        lastMessage: 'Don&apos;t forget to complete your CBT case study by Friday!',
-                        time: '2h',
-                        unread: true
-                      },
-                      {
-                        id: 2,
-                        name: 'Study Group',
-                        avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-                        lastMessage: 'Let&apos;s meet online tomorrow to discuss the journal entries.',
-                        time: '1d',
-                        unread: false
-                      },
-                      {
-                        id: 3,
-                        name: 'Tech Support',
-                        avatar: 'https://randomuser.me/api/portraits/men/45.jpg',
-                        lastMessage: 'Your issue has been resolved. Let me know if you need anything else.',
-                        time: '2d',
-                        unread: false
-                      },
-                    ]}
-                    renderItem={item => (
-                      <List.Item
-                        key={item.id}
-                        style={{ 
-                          padding: '12px 16px', 
-                          cursor: 'pointer', 
-                          background: item.unread ? '#f0f7ff' : 'transparent'
-                        }}
-                        onClick={() => {}}
-                      >
-                        <List.Item.Meta
-                          avatar={<Avatar src={item.avatar} />}
-                          title={
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                              <Text strong={item.unread}>{item.name}</Text>
-                              <Text type="secondary" style={{ fontSize: 12 }}>{item.time}</Text>
-                            </div>
-                          }
-                          description={
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                              <Text
-                                style={{ 
-                                  maxWidth: 180,
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  fontWeight: item.unread ? 600 : 400,
-                                  color: item.unread ? 'rgba(0, 0, 0, 0.85)' : 'rgba(0, 0, 0, 0.45)'
-                                }}
-                              >
-                                {item.lastMessage}
-                              </Text>
-                              {item.unread && <Badge color="blue" />}
-                            </div>
-                          }
-                        />
-                      </List.Item>
-                    )}
-                  />
-                </Col>
-                
-                {/* Chat Window */}
-                <Col xs={24} lg={16} style={{ display: 'flex', flexDirection: 'column', height: 600 }}>
-                  <div style={{ padding: 16, borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center' }}>
-                    <Avatar src="https://randomuser.me/api/portraits/women/44.jpg" size="large" />
-                    <div style={{ marginLeft: 12 }}>
-                      <Text strong>Dr. Sarah Johnson</Text>
-                      <div><Text type="success" style={{ fontSize: 12 }}>Online</Text></div>
-                    </div>
-                  </div>
-                  
-                  <div style={{ flex: 1, padding: 16, background: '#f5f7f9', overflowY: 'auto' }}>
-                    <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                      <div style={{ display: 'flex' }}>
-                        <Card size="small" style={{ maxWidth: 300 }}>
-                          <Text>Hi there! How&apos;s your progress on the CBT case study?</Text>
-                          <div><Text type="secondary" style={{ fontSize: 12 }}>10:30 AM</Text></div>
-                        </Card>
-                      </div>
-                      
-                      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <Card size="small" style={{ maxWidth: 300, background: '#1890ff' }}>
-                          <Text style={{ color: 'white' }}>
-                            I&apos;m about halfway through. Had some questions about the analysis section.
-                          </Text>
-                          <div><Text style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.75)' }}>10:35 AM</Text></div>
-                        </Card>
-                      </div>
-                      
-                      <div style={{ display: 'flex' }}>
-                        <Card size="small" style={{ maxWidth: 300 }}>
-                          <Text>
-                            Let me know what questions you have. Don&apos;t forget it&apos;s due this Friday!
-                          </Text>
-                          <div><Text type="secondary" style={{ fontSize: 12 }}>10:42 AM</Text></div>
-                        </Card>
-                      </div>
-                    </Space>
-                  </div>
-                  
-                  <div style={{ padding: 16, borderTop: '1px solid #f0f0f0', display: 'flex' }}>
-                    <Input placeholder="Type a message..." style={{ marginRight: 8 }} />
-                    <Button type="primary">Send</Button>
-                  </div>
-                </Col>
-              </Row>
+            <Card>
+              <Text>Your messages will be displayed here. (Data to be fetched from API)</Text>
             </Card>
           </TabPane>
         </Tabs>

@@ -144,12 +144,19 @@ const ZoomMeeting: React.FC<ZoomMeetingProps> = ({
         console.log('Meeting details fetched:', meetingDetails);
         setMeetingInfo(meetingDetails);
 
-        // Get join signature
-        const joinInfoData = await zoomService.getJoinSignature(
-          meetingId,
+        // For demo, using workshopId from props as meetingNumber
+        const meetingNumber = meetingId || meetingDetails.id;
+        
+        console.log('Attempting to generate signature with:', { meetingNumber, role: 'user', userName: user?.firstName ? `${user.firstName} ${user.lastName}` : user?.email || 'Guest' });
+        
+        // Use the correct function name: generateSignature
+        const joinInfoData = await zoomService.generateSignature(
+          meetingNumber,
+          'user',
           user?.firstName ? `${user.firstName} ${user.lastName}` : user?.email || 'Guest'
         );
-        console.log('Join signature received:', joinInfoData);
+        
+        console.log('Signature generated successfully:', joinInfoData);
         setJoinInfo(joinInfoData);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load meeting details';

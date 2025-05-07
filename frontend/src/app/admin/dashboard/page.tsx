@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
 import { 
@@ -34,7 +34,7 @@ import {
   EditOutlined,
   DeleteOutlined,
   VideoCameraOutlined,
-  BugOutlined
+  MinusCircleOutlined
 } from '@ant-design/icons';
 import { User } from '@/api/userService';
 import { Course } from '@/api/courseService';
@@ -51,222 +51,9 @@ interface Workshop {
   date: string;
   participants: number;
   description?: string;
+  materials?: { name: string; url: string }[];
+  meetingId?: string;
 }
-
-// Default workshops data - only used if localStorage is empty
-const DEFAULT_WORKSHOPS: Workshop[] = [
-  { id: 1, title: 'Advanced Cognitive Techniques', instructor: 'Dr. Sarah Johnson', date: '2023-06-15', participants: 25 },
-  { id: 2, title: 'Behavioral Activation Workshop', instructor: 'Dr. Michael Brown', date: '2023-07-01', participants: 18 },
-  { id: 3, title: 'Mindfulness Techniques', instructor: 'Dr. Emily Wilson', date: '2023-07-15', participants: 30 },
-];
-
-// Token Debugger Component - for troubleshooting auth issues
-const TokenDebugger = () => {
-  const [tokenInfo, setTokenInfo] = useState<{
-    token: string | null;
-    tokenExists: boolean;
-    tokenFirstChars: string;
-    tokenLength: number;
-    tokenDecoded: Record<string, any> | null;
-  }>({
-    token: null,
-    tokenExists: false,
-    tokenFirstChars: '',
-    tokenLength: 0,
-    tokenDecoded: null
-  });
-
-  const [showToken, setShowToken] = useState(false);
-
-  useEffect(() => {
-    try {
-      // Get the token
-      const token = localStorage.getItem('access_token');
-      const tokenExists = !!token;
-      const tokenFirstChars = token ? token.substring(0, 15) + '...' : '';
-      const tokenLength = token ? token.length : 0;
-      
-      // Try to decode JWT
-      let tokenDecoded = null;
-      if (token) {
-        try {
-          const base64Url = token.split('.')[1];
-          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-          const jsonPayload = decodeURIComponent(
-            atob(base64)
-              .split('')
-              .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-              .join('')
-          );
-          tokenDecoded = JSON.parse(jsonPayload);
-        } catch (e) {
-          console.error('Error decoding token:', e);
-          tokenDecoded = { error: 'Invalid JWT format' };
-        }
-      }
-      
-      setTokenInfo({
-        token,
-        tokenExists,
-        tokenFirstChars,
-        tokenLength,
-        tokenDecoded
-      });
-    } catch (error) {
-      console.error('Error in token debugger:', error);
-    }
-  }, []);
-
-  const refreshToken = () => {
-    try {
-      // Get the token
-      const token = localStorage.getItem('access_token');
-      const tokenExists = !!token;
-      const tokenFirstChars = token ? token.substring(0, 15) + '...' : '';
-      const tokenLength = token ? token.length : 0;
-      
-      // Try to decode JWT
-      let tokenDecoded = null;
-      if (token) {
-        try {
-          const base64Url = token.split('.')[1];
-          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-          const jsonPayload = decodeURIComponent(
-            atob(base64)
-              .split('')
-              .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-              .join('')
-          );
-          tokenDecoded = JSON.parse(jsonPayload);
-        } catch (e) {
-          console.error('Error decoding token:', e);
-          tokenDecoded = { error: 'Invalid JWT format' };
-        }
-      }
-      
-      setTokenInfo({
-        token,
-        tokenExists,
-        tokenFirstChars,
-        tokenLength,
-        tokenDecoded
-      });
-      
-      message.success('Token information refreshed');
-    } catch (error) {
-      console.error('Error refreshing token:', error);
-      message.error('Error refreshing token information');
-    }
-  };
-
-  const formatTokenForAPI = (token: string | null): string => {
-    if (!token) return '';
-    return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
-  };
-
-  const fixToken = () => {
-    try {
-      const token = localStorage.getItem('access_token');
-      if (!token) {
-        message.error('No token to fix');
-        return;
-      }
-      
-      // Make sure token has no Bearer prefix in storage
-      const cleanToken = token.startsWith('Bearer ') ? token.substring(7) : token;
-      localStorage.setItem('access_token', cleanToken);
-      
-      message.success('Token format fixed in localStorage');
-      refreshToken();
-    } catch (error) {
-      console.error('Error fixing token:', error);
-      message.error('Error fixing token format');
-    }
-  };
-
-  return (
-    <Card title="Authentication Debugger" style={{ marginBottom: 16 }}>
-      <Space direction="vertical" style={{ width: '100%' }}>
-        <div>
-          <Text strong>Token Status:</Text>{' '}
-          {tokenInfo.tokenExists ? (
-            <Text type="success">Found in localStorage</Text>
-          ) : (
-            <Text type="danger">Not found in localStorage</Text>
-          )}
-        </div>
-        
-        {tokenInfo.tokenExists && (
-          <>
-            <div>
-              <Text strong>Token Length:</Text> {tokenInfo.tokenLength} characters
-            </div>
-            
-            <div>
-              <Text strong>Token Format:</Text>{' '}
-              {tokenInfo.token?.startsWith('Bearer ') ? (
-                <Text type="warning">Stored with Bearer prefix (should be fixed)</Text>
-              ) : (
-                <Text type="success">Correct format (no Bearer prefix in storage)</Text>
-              )}
-            </div>
-            
-            <div>
-              <Text strong>Token Preview:</Text>{' '}
-              {showToken ? tokenInfo.token : tokenInfo.tokenFirstChars}{' '}
-              <Button 
-                size="small" 
-                onClick={() => setShowToken(!showToken)}
-              >
-                {showToken ? 'Hide' : 'Show Full'}
-              </Button>
-            </div>
-            
-            {tokenInfo.tokenDecoded && (
-              <div>
-                <Text strong>Decoded Token:</Text>
-                <pre style={{ 
-                  background: '#f6f6f6', 
-                  padding: 8, 
-                  borderRadius: 4,
-                  maxHeight: 200,
-                  overflow: 'auto'
-                }}>
-                  {JSON.stringify(tokenInfo.tokenDecoded, null, 2)}
-                </pre>
-              </div>
-            )}
-            
-            <div>
-              <Text strong>API Format:</Text>{' '}
-              <code>Authorization: {formatTokenForAPI(tokenInfo.token)}</code>
-            </div>
-          </>
-        )}
-        
-        <Space>
-          <Button 
-            type="primary" 
-            icon={<BugOutlined />} 
-            onClick={refreshToken}
-          >
-            Refresh Token Info
-          </Button>
-          
-          {tokenInfo.token?.startsWith('Bearer ') && (
-            <Button 
-              type="primary" 
-              danger 
-              onClick={fixToken}
-            >
-              Fix Token Format
-            </Button>
-          )}
-        </Space>
-      </Space>
-    </Card>
-  );
-};
 
 export default function AdminDashboard() {
   const { user, loading, signout } = useAuth();
@@ -287,7 +74,7 @@ export default function AdminDashboard() {
   const [editingWorkshop, setEditingWorkshop] = useState<Workshop | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   
-  // State for real data
+  // State for real data - initialized to empty arrays
   const [users, setUsers] = useState<User[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
@@ -346,11 +133,14 @@ export default function AdminDashboard() {
         throw new Error('No authentication token found');
       }
 
-      // Using the valid /sessions/upcoming endpoint from the backend
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions/upcoming`, {
+      // Ensure token has proper Bearer format
+      const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+
+      // Fetch ALL workshops
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
         cache: 'no-store'
@@ -362,39 +152,40 @@ export default function AdminDashboard() {
         throw new Error(`Failed to fetch workshops with status: ${response.status}`);
       }
 
-      const sessionsData = await response.json();
-      console.log('Upcoming sessions fetched successfully:', sessionsData);
+      const workshopsData = await response.json();
+      console.log('Workshops fetched successfully:', workshopsData);
       
-      // Define interface for session data
-      interface SessionData {
+      // Define an interface for the workshop data coming from the API
+      interface ApiWorkshop {
         id: number;
         title: string;
         instructor: string;
         date: string;
-        time?: string;
+        participants: number; // Directly from the entity
         description?: string;
+        // Add other fields if needed from workshop.entity.ts for display
       }
       
-      // Transform sessions data to match workshop structure
-      const formattedWorkshops = sessionsData.map((session: SessionData) => ({
-        id: session.id,
-        title: session.title,
-        instructor: session.instructor,
-        date: session.date,
-        participants: 0, // Default value as this isn't in the API
-        description: session.description || `Workshop session with ${session.instructor}`
+      // Transform workshop data
+      const formattedWorkshops = workshopsData.map((workshop: ApiWorkshop) => ({
+        id: workshop.id,
+        title: workshop.title,
+        instructor: workshop.instructor,
+        date: workshop.date, 
+        participants: workshop.participants || 0, // Use the direct field
+        description: workshop.description || ''
       }));
       
-      setWorkshops(formattedWorkshops.length > 0 ? formattedWorkshops : DEFAULT_WORKSHOPS);
+      setWorkshops(formattedWorkshops);
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch workshops';
       console.error('Error fetching workshops:', errorMessage);
       setError(errorMessage);
       
-      // Use default workshops as fallback
-      console.log('Using default workshops data due to API error');
-      setWorkshops(DEFAULT_WORKSHOPS);
+      // Set to empty array on error
+      console.log('Setting workshops to empty array due to API error');
+      setWorkshops([]);
     } finally {
       setLoadingWorkshops(false);
     }
@@ -415,10 +206,13 @@ export default function AdminDashboard() {
         throw new Error('No authentication token found');
       }
 
+      // Ensure token has proper Bearer format
+      const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
         cache: 'no-store'
@@ -438,14 +232,15 @@ export default function AdminDashboard() {
         throw new Error(errorData.message || `Failed to fetch users with status: ${response.status}`);
       }
 
-      const users = await response.json();
-      console.log('Users fetched successfully:', users);
-      setUsers(users);
+      const usersData = await response.json(); // Renamed from users to usersData to avoid conflict
+      console.log('Users fetched successfully:', usersData);
+      setUsers(usersData);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch users';
       console.error('Error fetching users:', errorMessage);
       setError(errorMessage);
       message.error('Failed to load users. Please try again.');
+      setUsers([]); // Set to empty array on error
     } finally {
       setLoadingUsers(false);
     }
@@ -465,10 +260,13 @@ export default function AdminDashboard() {
         throw new Error('No authentication token found');
       }
 
+      // Ensure token has proper Bearer format
+      const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/courses`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
         cache: 'no-store'
@@ -488,14 +286,15 @@ export default function AdminDashboard() {
         throw new Error(errorData.message || `Failed to fetch courses with status: ${response.status}`);
       }
 
-      const courses = await response.json();
-      console.log('Courses fetched successfully:', courses);
-      setCourses(courses);
+      const coursesData = await response.json(); // Renamed from courses to coursesData
+      console.log('Courses fetched successfully:', coursesData);
+      setCourses(coursesData);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch courses';
       console.error('Error fetching courses:', errorMessage);
       setError(errorMessage);
       message.error('Failed to load courses. Please try again.');
+      setCourses([]); // Set to empty array on error
     } finally {
       setLoadingCourses(false);
     }
@@ -538,6 +337,9 @@ export default function AdminDashboard() {
         throw new Error('No authentication token found');
       }
 
+      // Ensure token has proper Bearer format
+      const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+
       const userData = {
         firstName: values.firstName,
         lastName: values.lastName,
@@ -552,7 +354,7 @@ export default function AdminDashboard() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(userData),
@@ -596,12 +398,15 @@ export default function AdminDashboard() {
         throw new Error('No authentication token found');
       }
 
+      // Ensure token has proper Bearer format
+      const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+
       console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
       
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
       });
@@ -682,12 +487,15 @@ export default function AdminDashboard() {
             throw new Error('No authentication token found');
           }
 
+          // Ensure token has proper Bearer format
+          const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+
           console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
           
           const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/courses/${course.id}`, {
             method: 'DELETE',
             headers: {
-              'Authorization': `Bearer ${token}`,
+              'Authorization': formattedToken,
               'Content-Type': 'application/json',
             },
           });
@@ -736,6 +544,9 @@ export default function AdminDashboard() {
         throw new Error('No authentication token found');
       }
 
+      // Ensure token has proper Bearer format
+      const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+
       console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
 
       if (editingCourse) {
@@ -750,7 +561,7 @@ export default function AdminDashboard() {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/courses/${editingCourse.id}`, {
           method: 'PUT',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': formattedToken,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(courseData),
@@ -784,7 +595,7 @@ export default function AdminDashboard() {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/courses`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': formattedToken,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(courseData),
@@ -860,6 +671,9 @@ export default function AdminDashboard() {
       if (!token) {
         throw new Error('No authentication token found');
       }
+
+      // Ensure token has proper Bearer format
+      const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
       
       if (editingWorkshop) {
         // Update existing workshop via API
@@ -869,7 +683,10 @@ export default function AdminDashboard() {
           title: values.title,
           instructor: values.instructor,
           date: formattedDate,
-          description: values.description || ''
+          description: values.description || '',
+          meetingId: values.meetingId || null,
+          materials: values.materials || [],
+          // agenda: values.agenda || [] // TODO: Initialize agenda when its Form.List is added
         };
 
         // Log the workshop data
@@ -878,7 +695,7 @@ export default function AdminDashboard() {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops/${editingWorkshop.id}`, {
           method: 'PUT',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': formattedToken,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(workshopData),
@@ -907,7 +724,10 @@ export default function AdminDashboard() {
           instructor: values.instructor,
           date: formattedDate,
           description: values.description || '',
-          participants: 0
+          meetingId: values.meetingId || null,
+          participants: 0,
+          materials: values.materials || [],
+          // agenda: values.agenda || [] // TODO: Initialize agenda when its Form.List is added
         };
 
         // Log the workshop data
@@ -916,7 +736,7 @@ export default function AdminDashboard() {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': formattedToken,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(workshopData),
@@ -999,6 +819,9 @@ export default function AdminDashboard() {
         throw new Error('No authentication token found');
       }
 
+      // Ensure token has proper Bearer format
+      const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+
       const userData = {
         firstName: values.firstName,
         lastName: values.lastName,
@@ -1012,7 +835,7 @@ export default function AdminDashboard() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${editingUser.id}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(userData),
@@ -1050,14 +873,16 @@ export default function AdminDashboard() {
   const handleEditWorkshop = (workshop: Workshop) => {
     setEditingWorkshop(workshop);
     
-    // Parse the date string to a moment object
     const workshopDate = workshop.date;
     
     workshopForm.setFieldsValue({
       title: workshop.title,
       instructor: workshop.instructor,
       date: workshopDate ? moment(workshopDate) : null,
-      description: workshop.description
+      description: workshop.description,
+      meetingId: workshop.meetingId || '',
+      materials: workshop.materials || [],
+      // agenda: workshop.agenda || [] // TODO: Initialize agenda when its Form.List is added
     });
     
     setIsWorkshopModalOpen(true);
@@ -1075,10 +900,13 @@ export default function AdminDashboard() {
         throw new Error('No authentication token found');
       }
       
+      // Ensure token has proper Bearer format
+      const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workshops/${workshopId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
       });
@@ -1267,9 +1095,6 @@ export default function AdminDashboard() {
         return (
           <>
             <Title level={2}>Admin Dashboard</Title>
-            
-            {/* Add TokenDebugger at the top of the dashboard */}
-            <TokenDebugger />
             
             <Row gutter={16} style={{ marginBottom: '24px' }}>
               <Col span={8}>
@@ -1672,6 +1497,7 @@ export default function AdminDashboard() {
         title={editingWorkshop ? "Edit Workshop" : "Create New Workshop"}
         open={isWorkshopModalOpen}
         onCancel={handleWorkshopModalCancel}
+        width={800}
         footer={[
           <Button key="cancel" onClick={handleWorkshopModalCancel}>
             Cancel
@@ -1724,6 +1550,55 @@ export default function AdminDashboard() {
           >
             <Input.TextArea rows={4} />
           </Form.Item>
+
+          <Form.Item
+            name="meetingId"
+            label="Zoom Meeting ID (Optional)"
+            tooltip="Enter the 9-11 digit Zoom Meeting ID to associate with this workshop. Leave blank if no specific Zoom meeting is set up yet."
+          >
+            <Input placeholder="E.g., 9809175590" />
+          </Form.Item>
+
+          <Divider>Materials</Divider>
+          <Form.List name="materials">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map(({ key, name, ...restField }) => (
+                  <Row key={key} gutter={16} align="bottom" style={{ marginBottom: 0 }}>
+                    <Col span={11}>
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'name']}
+                        label="Material Name"
+                        rules={[{ required: true, message: 'Missing material name' }]}
+                      >
+                        <Input placeholder="E.g., Slides PDF" />
+                      </Form.Item>
+                    </Col>
+                    <Col span={11}>
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'url']}
+                        label="Material URL"
+                        rules={[{ required: true, message: 'Missing material URL' }, { type: 'url', message: 'Must be a valid URL' }]}
+                      >
+                        <Input placeholder="https://example.com/material.pdf" />
+                      </Form.Item>
+                    </Col>
+                    <Col span={2} style={{ display: 'flex', alignItems: 'center', paddingBottom: '24px' }}>
+                      <MinusCircleOutlined onClick={() => remove(name)} />
+                    </Col>
+                  </Row>
+                ))}
+                <Form.Item style={{ marginTop: '16px' }}>
+                  <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                    Add Material
+                  </Button>
+                </Form.Item>
+              </>
+            )}
+          </Form.List>
+
         </Form>
       </Modal>
 

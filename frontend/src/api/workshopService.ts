@@ -1,8 +1,8 @@
 // Use environment variable for API URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:15001/lms';
 
-// Format token with Bearer prefix - ensure consistency with authService.ts
-function formatToken(token: string): string {
+// Helper to format token with Bearer prefix
+function formatTokenForAPI(token: string | null): string {
   if (!token) return '';
   return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
 }
@@ -103,13 +103,14 @@ const saveWorkshopsToLocalStorage = (workshops: Workshop[]) => {
   localStorage.setItem('workshops', JSON.stringify(workshops));
 };
 
+// --- INTERFACES --- //
 export interface Workshop {
-  id: string;
+  id: string | number; // Allow string or number for ID, backend likely uses number
   title: string;
   instructor: string;
   date: string;
-  description: string;
-  duration: string;
+  description?: string;
+  duration?: string;
   materials?: {
     name: string;
     type: string;
@@ -120,110 +121,80 @@ export interface Workshop {
     activity: string;
   }[];
   participants: number;
+  // Add any other fields your Workshop entity might have
 }
 
 export interface Session {
   id: number;
   title: string;
-  course: string;
+  course: string; // Or courseId if it's a relation
   date: string;
   instructor: string;
   link: string;
+  // Add any other fields your Session entity might have
 }
 
 export interface Homework {
   id: number;
   title: string;
-  course: string;
+  course: string; // Or courseId
   dueDate: string;
   status: 'Not Started' | 'In Progress' | 'Completed';
   link: string;
+  // Add any other fields
 }
 
 export interface Message {
   id: number;
   sender: string;
-  avatar: string;
+  avatar?: string; // Optional avatar
   message: string;
   time: string;
   unread: boolean;
+  // Add any other fields
 }
 
+// --- API SERVICE --- //
 export const workshopService = {
-  async getNextWorkshop(): Promise<Workshop> {
+  // --- Workshop CRUD --- //
+  async getAllWorkshops(): Promise<Workshop[]> {
     const token = localStorage.getItem('access_token');
-    
     if (!token) {
-      throw new Error('No authentication token found');
+      console.warn('[workshopService.getAllWorkshops] No auth token found');
+      return [];
     }
-
-    // Format token consistently
-    const formattedToken = formatToken(token);
-    console.log('Using token to fetch next workshop: Token exists');
-
+    const formattedToken = formatTokenForAPI(token);
+    console.log('[workshopService.getAllWorkshops] Attempting to fetch from API...');
     try {
-      // Try to fetch from backend first
-      const response = await fetch(`${API_URL}/workshops/next`, {
+      const response = await fetch(`${API_URL}/workshops`, {
         method: 'GET',
         headers: {
           'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
       });
-      
-      if (response.ok) {
-        const workshopData = await response.json();
-        return workshopData;
+      if (!response.ok) {
+        console.warn(`[workshopService.getAllWorkshops] API responded with ${response.status}`);
+        return [];
       }
-      
-      console.log('Backend API not available, using localStorage data');
-      
-      // Fallback to localStorage if API doesn't work
-      const workshops = getWorkshopsFromLocalStorage();
-      
-      // Get the nearest future workshop based on date
-      // Ensure dates are in future - add 2025 to year for demo purposes
-      const futureWorkshops = workshops.map(workshop => {
-        const workshopDate = new Date(workshop.date);
-        const currentYear = new Date().getFullYear();
-        
-        // If date is in the past, use current year + 1
-        if (workshopDate < new Date()) {
-          const dateParts = workshop.date.split('-');
-          // Update the year to next year
-          workshop.date = `${currentYear + 1}-${dateParts[1]}-${dateParts[2]}`;
-        }
-        
-        return workshop;
-      });
-      
-      // Sort by date (ascending)
-      futureWorkshops.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      
-      // Return the first (nearest) workshop
-      return futureWorkshops[0] || DEFAULT_WORKSHOPS[0];
+      const data = await response.json();
+      console.log('[workshopService.getAllWorkshops] Fetched from API:', data);
+      return data as Workshop[]; // Adjust if API returns a different structure
     } catch (error) {
-      console.error('Next workshop fetch error:', error);
-      
-      // Last resort fallback 
-      const workshops = getWorkshopsFromLocalStorage();
-      return workshops[0] || DEFAULT_WORKSHOPS[0];
+      console.error('[workshopService.getAllWorkshops] Fetch error:', error);
+      return [];
     }
   },
 
-  async getWorkshopById(id: string): Promise<Workshop> {
+  async getWorkshopById(id: string | number): Promise<Workshop | null> {
     const token = localStorage.getItem('access_token');
-    
     if (!token) {
-      throw new Error('No authentication token found');
+      console.warn(`[workshopService.getWorkshopById] No auth token for ID ${id}`);
+      return null;
     }
-
-    // Format token consistently
-    const formattedToken = formatToken(token);
-    console.log('Using token to fetch workshop by ID: Token exists');
-
+    const formattedToken = formatTokenForAPI(token);
+    console.log(`[workshopService.getWorkshopById] Attempting to fetch ID ${id} from API...`);
     try {
-      // Try API first
       const response = await fetch(`${API_URL}/workshops/${id}`, {
         method: 'GET',
         headers: {
@@ -231,152 +202,60 @@ export const workshopService = {
           'Content-Type': 'application/json',
         },
       });
-      
-      if (response.ok) {
-        const workshopData = await response.json();
-        return workshopData;
+      if (!response.ok) {
+        console.warn(`[workshopService.getWorkshopById] API for ID ${id} responded with ${response.status}`);
+        return null;
       }
-      
-      console.log('Backend API not available, using localStorage data');
-      
-      // Fallback to localStorage
-      const workshops = getWorkshopsFromLocalStorage();
-      const workshop = workshops.find(w => w.id === id);
-      
-      if (!workshop) {
-        throw new Error(`Workshop with ID ${id} not found`);
-      }
-      
-      return workshop;
+      const data = await response.json();
+      console.log(`[workshopService.getWorkshopById] Fetched ID ${id} from API:`, data);
+      return data as Workshop;
     } catch (error) {
-      console.error(`Workshop ${id} fetch error:`, error);
-      
-      // Last resort fallback
-      const workshops = getWorkshopsFromLocalStorage();
-      const workshop = workshops.find(w => w.id === id);
-      
-      if (!workshop) {
-        throw new Error(`Workshop with ID ${id} not found`);
-      }
-      
-      return workshop;
+      console.error(`[workshopService.getWorkshopById] Fetch error for ID ${id}:`, error);
+      return null;
     }
   },
 
-  async getAllWorkshops(): Promise<Workshop[]> {
+  async createWorkshop(workshopData: Omit<Workshop, 'id' | 'participants'> & { participants?: number }): Promise<Workshop | null> {
     const token = localStorage.getItem('access_token');
-    
     if (!token) {
-      throw new Error('No authentication token found');
+      console.warn('[workshopService.createWorkshop] No auth token found');
+      return null;
     }
-
-    // Format token consistently
-    const formattedToken = formatToken(token);
-    console.log('Using token to fetch all workshops: Token exists');
-
+    const formattedToken = formatTokenForAPI(token);
+    const payload = { ...workshopData, participants: workshopData.participants || 0 };
+    console.log('[workshopService.createWorkshop] Attempting to POST to API with payload:', payload);
     try {
-      // Try API first
-      const response = await fetch(`${API_URL}/workshops`, {
-        method: 'GET',
-        headers: {
-          'Authorization': formattedToken,
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (response.ok) {
-        const workshopsData = await response.json();
-        return workshopsData;
-      }
-      
-      console.log('Backend API not available, using localStorage data');
-      
-      // Fallback to localStorage
-      return getWorkshopsFromLocalStorage();
-    } catch (error) {
-      console.error('Workshops fetch error:', error);
-      
-      // Last resort fallback
-      return getWorkshopsFromLocalStorage();
-    }
-  },
-
-  async createWorkshop(workshopData: Omit<Workshop, 'id'>): Promise<Workshop> {
-    const token = localStorage.getItem('access_token');
-    
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    // Format token consistently
-    const formattedToken = formatToken(token);
-    console.log('Using token to create workshop: Token exists');
-
-    try {
-      // Try API first
       const response = await fetch(`${API_URL}/workshops`, {
         method: 'POST',
         headers: {
           'Authorization': formattedToken,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(workshopData),
+        body: JSON.stringify(payload),
       });
-      
-      if (response.ok) {
-        const createdWorkshop = await response.json();
-        return createdWorkshop;
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.warn(`[workshopService.createWorkshop] API responded with ${response.status}: ${errorText}`);
+        return null;
       }
-      
-      console.log('Backend API not available, using localStorage data');
-      
-      // Fallback to localStorage
-      const workshops = getWorkshopsFromLocalStorage();
-      
-      // Create a new workshop with a unique ID
-      const newWorkshop: Workshop = {
-        ...workshopData,
-        id: Date.now().toString() // Use timestamp as ID
-      };
-      
-      // Add to localStorage
-      workshops.push(newWorkshop);
-      saveWorkshopsToLocalStorage(workshops);
-      
-      return newWorkshop;
+      const data = await response.json();
+      console.log('[workshopService.createWorkshop] Created via API:', data);
+      return data as Workshop;
     } catch (error) {
-      console.error('Create workshop error:', error);
-      
-      // Last resort fallback
-      const workshops = getWorkshopsFromLocalStorage();
-      
-      // Create a new workshop with a unique ID
-      const newWorkshop: Workshop = {
-        ...workshopData,
-        id: Date.now().toString() // Use timestamp as ID
-      };
-      
-      // Add to localStorage
-      workshops.push(newWorkshop);
-      saveWorkshopsToLocalStorage(workshops);
-      
-      return newWorkshop;
+      console.error('[workshopService.createWorkshop] Fetch error:', error);
+      return null;
     }
   },
 
-  async updateWorkshop(id: string, workshopData: Partial<Workshop>): Promise<Workshop> {
+  async updateWorkshop(id: string | number, workshopData: Partial<Workshop>): Promise<Workshop | null> {
     const token = localStorage.getItem('access_token');
-    
     if (!token) {
-      throw new Error('No authentication token found');
+      console.warn(`[workshopService.updateWorkshop] No auth token for ID ${id}`);
+      return null;
     }
-
-    // Format token consistently
-    const formattedToken = formatToken(token);
-    console.log('Using token to update workshop: Token exists');
-
+    const formattedToken = formatTokenForAPI(token);
+    console.log(`[workshopService.updateWorkshop] Attempting to PUT to API for ID ${id} with payload:`, workshopData);
     try {
-      // Try API first
       const response = await fetch(`${API_URL}/workshops/${id}`, {
         method: 'PUT',
         headers: {
@@ -385,67 +264,29 @@ export const workshopService = {
         },
         body: JSON.stringify(workshopData),
       });
-      
-      if (response.ok) {
-        const updatedWorkshop = await response.json();
-        return updatedWorkshop;
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.warn(`[workshopService.updateWorkshop] API for ID ${id} responded with ${response.status}: ${errorText}`);
+        return null;
       }
-      
-      console.log('Backend API not available, using localStorage data');
-      
-      // Fallback to localStorage
-      const workshops = getWorkshopsFromLocalStorage();
-      const workshopIndex = workshops.findIndex(w => w.id === id);
-      
-      if (workshopIndex === -1) {
-        throw new Error(`Workshop with ID ${id} not found`);
-      }
-      
-      // Update workshop
-      workshops[workshopIndex] = {
-        ...workshops[workshopIndex],
-        ...workshopData
-      };
-      
-      saveWorkshopsToLocalStorage(workshops);
-      
-      return workshops[workshopIndex];
+      const data = await response.json();
+      console.log(`[workshopService.updateWorkshop] Updated ID ${id} via API:`, data);
+      return data as Workshop;
     } catch (error) {
-      console.error(`Update workshop ${id} error:`, error);
-      
-      // Last resort fallback
-      const workshops = getWorkshopsFromLocalStorage();
-      const workshopIndex = workshops.findIndex(w => w.id === id);
-      
-      if (workshopIndex === -1) {
-        throw new Error(`Workshop with ID ${id} not found`);
-      }
-      
-      // Update workshop
-      workshops[workshopIndex] = {
-        ...workshops[workshopIndex],
-        ...workshopData
-      };
-      
-      saveWorkshopsToLocalStorage(workshops);
-      
-      return workshops[workshopIndex];
+      console.error(`[workshopService.updateWorkshop] Fetch error for ID ${id}:`, error);
+      return null;
     }
   },
 
-  async deleteWorkshop(id: string): Promise<void> {
+  async deleteWorkshop(id: string | number): Promise<boolean> {
     const token = localStorage.getItem('access_token');
-    
     if (!token) {
-      throw new Error('No authentication token found');
+      console.warn(`[workshopService.deleteWorkshop] No auth token for ID ${id}`);
+      return false;
     }
-
-    // Format token consistently
-    const formattedToken = formatToken(token);
-    console.log('Using token to delete workshop: Token exists');
-
+    const formattedToken = formatTokenForAPI(token);
+    console.log(`[workshopService.deleteWorkshop] Attempting to DELETE ID ${id} via API...`);
     try {
-      // Try API first
       const response = await fetch(`${API_URL}/workshops/${id}`, {
         method: 'DELETE',
         headers: {
@@ -453,58 +294,107 @@ export const workshopService = {
           'Content-Type': 'application/json',
         },
       });
-      
-      if (response.ok) {
-        return;
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.warn(`[workshopService.deleteWorkshop] API for ID ${id} responded with ${response.status}: ${errorText}`);
+        return false;
       }
-      
-      console.log('Backend API not available, using localStorage data');
-      
-      // Fallback to localStorage
-      const workshops = getWorkshopsFromLocalStorage();
-      const filteredWorkshops = workshops.filter(w => w.id !== id);
-      
-      if (filteredWorkshops.length === workshops.length) {
-        throw new Error(`Workshop with ID ${id} not found`);
-      }
-      
-      saveWorkshopsToLocalStorage(filteredWorkshops);
+      console.log(`[workshopService.deleteWorkshop] Deleted ID ${id} via API successfully.`);
+      return true;
     } catch (error) {
-      console.error(`Delete workshop ${id} error:`, error);
-      
-      // Last resort fallback
-      const workshops = getWorkshopsFromLocalStorage();
-      const filteredWorkshops = workshops.filter(w => w.id !== id);
-      
-      if (filteredWorkshops.length === workshops.length) {
-        throw new Error(`Workshop with ID ${id} not found`);
+      console.error(`[workshopService.deleteWorkshop] Fetch error for ID ${id}:`, error);
+      return false;
+    }
+  },
+
+  // --- Student Dashboard Specific Data --- //
+  async getNextWorkshop(): Promise<Workshop | null> {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      console.warn('[workshopService.getNextWorkshop] No auth token found');
+      return null;
+    }
+    const formattedToken = formatTokenForAPI(token);
+    console.log('[workshopService.getNextWorkshop] Attempting to fetch from API (/workshops/next)... ');
+    try {
+      const response = await fetch(`${API_URL}/workshops/next`, { // Hits the specific /next endpoint
+        method: 'GET',
+        headers: {
+          'Authorization': formattedToken,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        console.warn(`[workshopService.getNextWorkshop] API responded with ${response.status}. No "next" workshop found or error.`);
+        return null;
       }
-      
-      saveWorkshopsToLocalStorage(filteredWorkshops);
+      const data = await response.json();
+      console.log('[workshopService.getNextWorkshop] Fetched from API:', data);
+      // Ensure the response is not an empty object if the backend returns {} for no workshop
+      if (Object.keys(data).length === 0 && data.constructor === Object) {
+          return null;
+      }
+      return data as Workshop;
+    } catch (error) {
+      console.error('[workshopService.getNextWorkshop] Fetch error:', error);
+      return null;
     }
   },
 
   async getUpcomingSessions(): Promise<Session[]> {
-    // Use mock data when API isn't available
-    return [
-      { id: 1, title: 'Behavioral Therapy Fundamentals', course: 'Clinical Psychology 101', date: '2023-07-01T05:30:00', instructor: 'Dr. Michael Brown', link: '/workshop/1' },
-      { id: 2, title: 'Advanced Cognitive Techniques', course: 'Cognitive Psychology 201', date: '2023-07-15T05:30:00', instructor: 'Dr. Sarah Johnson', link: '/workshop/2' },
-    ];
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      console.warn('[workshopService.getUpcomingSessions] No auth token found');
+      return [];
+    }
+    const formattedToken = formatTokenForAPI(token);
+    console.log('[workshopService.getUpcomingSessions] Attempting to fetch from API (/workshops/sessions/upcoming)... ');
+    // TODO: Verify this is the correct endpoint on your backend for "Upcoming Live Sessions" for students
+    // This currently matches the Admin Dashboard's workshop list endpoint.
+    try {
+      const response = await fetch(`${API_URL}/workshops/sessions/upcoming`, {
+        method: 'GET',
+        headers: {
+          'Authorization': formattedToken,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        console.warn(`[workshopService.getUpcomingSessions] API responded with ${response.status}`);
+        return [];
+      }
+      const data = await response.json();
+      console.log('[workshopService.getUpcomingSessions] Fetched from API:', data);
+      return data as Session[];
+    } catch (error) {
+      console.error('[workshopService.getUpcomingSessions] Fetch error:', error);
+      return [];
+    }
   },
 
   async getPendingHomework(): Promise<Homework[]> {
-    // Use mock data when API isn't available
-    return [
-      { id: 1, title: 'CBT Case Analysis', course: 'Cognitive Psychology 201', dueDate: '2023-07-10T23:59:59', status: 'In Progress', link: '/homework/1' },
-      { id: 2, title: 'Research Methods Quiz', course: 'Research Fundamentals', dueDate: '2023-07-15T23:59:59', status: 'Not Started', link: '/homework/2' },
-    ];
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      console.warn('[workshopService.getPendingHomework] No auth token found');
+      return [];
+    }
+    // const formattedToken = formatTokenForAPI(token);
+    console.warn('[workshopService.getPendingHomework] API call not implemented. Returning empty array.');
+    // TODO: Implement actual API call to fetch pending homework.
+    // Example: `${API_URL}/homework/pending` or similar.
+    return Promise.resolve([]); 
   },
 
   async getRecentMessages(): Promise<Message[]> {
-    // Use mock data when API isn't available
-    return [
-      { id: 1, sender: 'Dr. Sarah Johnson', avatar: 'https://randomuser.me/api/portraits/women/44.jpg', message: 'Don\'t forget to complete your CBT case study by Friday!', time: '2h', unread: true },
-      { id: 2, sender: 'Study Group', avatar: 'https://randomuser.me/api/portraits/men/32.jpg', message: 'Let\'s meet online tomorrow to discuss the journal entries.', time: '1d', unread: false },
-    ];
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      console.warn('[workshopService.getRecentMessages] No auth token found');
+      return [];
+    }
+    // const formattedToken = formatTokenForAPI(token);
+    console.warn('[workshopService.getRecentMessages] API call not implemented. Returning empty array.');
+    // TODO: Implement actual API call to fetch recent messages.
+    // Example: `${API_URL}/messages/recent` or similar.
+    return Promise.resolve([]);
   }
 }; 

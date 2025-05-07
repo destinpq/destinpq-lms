@@ -70,15 +70,41 @@ export class UsersService implements OnModuleInit {
   }
 
   async findByEmail(email: string, includePassword: boolean = false): Promise<User | null> {
-    if (includePassword) {
-      return this.usersRepository
-        .createQueryBuilder('user')
-        .addSelect('user.password')
-        .where('user.email = :email', { email })
-        .getOne();
-    }
+    console.log(`[UsersService] Finding user by email: ${email}, IncludePassword: ${includePassword}`);
     
-    return this.usersRepository.findOneBy({ email });
+    let user: User | null = null;
+    try {
+      const query = this.usersRepository
+        .createQueryBuilder('user')
+        .where('TRIM(LOWER(user.email)) = TRIM(LOWER(:email))', { email });
+
+      if (includePassword) {
+        query.addSelect('user.password');
+      }
+      
+      // Log the generated SQL and parameters
+      try {
+        const sqlAndParams = query.getQueryAndParameters();
+        console.log(`[UsersService] Executing SQL: ${sqlAndParams[0]}, Parameters: ${JSON.stringify(sqlAndParams[1])}`);
+      } catch (e) {
+        console.warn('[UsersService] Could not get SQL query and parameters for logging:', e);
+      }
+
+      user = await query.getOne();
+      
+      if (!user) {
+        console.log(`[UsersService] Query for ${email} (IncludePassword: ${includePassword}) executed but returned no user from database.`);
+      }
+      console.log(`[UsersService] Result for ${email} (IncludePassword: ${includePassword}). Found: ${!!user}${user ? ' (ID: ' + user.id + ')' : ''}`);
+      return user;
+    } catch (error) {
+      console.error(`[UsersService] CRITICAL ERROR during findByEmail for ${email}:`, error);
+      // Log the error object itself for more details if it's not a simple string
+      if (typeof error === 'object' && error !== null) {
+        console.error('[UsersService] Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+      }
+      throw error;
+    }
   }
 
   async create(userData: Partial<User>): Promise<User> {
